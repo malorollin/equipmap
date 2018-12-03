@@ -1,0 +1,15 @@
+---
+title: "Mapping"
+author: "Gabriel Prunier-Duparge"
+date: "3 décembre 2018"
+output: html_document
+---
+
+```{r}
+#install.packages("leaflet")
+```
+
+```{r}
+library(leaflet)
+```
+
