@@ -20,5 +20,6 @@ Josephine la plus belle du groupe
 Gabriel le plus moche
 
 gilet_jaunes <- "Macron démission"
+et_on_fait_tourner <- "les serviettes"
 
 
