@@ -22,3 +22,13 @@ m
 
 ```
 
+
+```{r}
+df = data.frame(Lat = 1:10, Long = rnorm(10))
+leaflet(df) %>% addCircles() %>% addTiles()
+```
+
+```{r}
+
+```
+
