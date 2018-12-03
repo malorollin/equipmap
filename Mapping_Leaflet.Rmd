@@ -1,0 +1,24 @@
+---
+title: "Mapping"
+author: "Gabriel Prunier-Duparge"
+date: "3 décembre 2018"
+output: html_document
+---
+
+```{r}
+#install.packages("leaflet")
+```
+
+```{r}
+library(leaflet)
+```
+
+```{r}
+
+m <- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+m 
+
+```
+
