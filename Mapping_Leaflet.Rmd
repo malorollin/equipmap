@@ -11,6 +11,7 @@ output: html_document
 
 ```{r}
 library(leaflet)
+library(maps)
 ```
 
 ```{r}
@@ -24,9 +25,18 @@ m
 
 
 ```{r}
-df = data.frame(Lat = 1:10, Long = rnorm(10))
+df = data.frame(Lat = 30:40, Long = rnorm(11))
 leaflet(df) %>% addCircles() %>% addTiles()
 ```
+
+```{r}
+
+mapStates = map("france", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
+
+```
+
 
 ```{r}
 
