@@ -18,4 +18,6 @@ malo <- "gabriel"
 
 Josephine la plus belle du groupe
 
+gilet_jaunes <- "Macron démission"
+
 
