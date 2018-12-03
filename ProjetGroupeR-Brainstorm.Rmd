@@ -44,3 +44,50 @@ equip_com %>% distinct(bv2012) #1600 bassins de vie
 uu <- read_xls(file = "Data/UU2010au01-01-2018.xls")
 ```
 
+=======
+---
+title: "ProjetGroupR"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("foreign")
+```
+
+
+```{r}
+library(foreign)
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(readxl)
+```
+
+```{r}
+equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
+equip_bv <- read.dbf(file = "Data/bpe1217_nbequip_bv.dbf")
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_reg <- read.dbf(file = "Data/bpe1217_nbequip_reg.dbf")
+equip_uu <- read.dbf(file = "Data/bpe1217_nbequip_uu.dbf")
+equip_com <- read.dbf(file = "Data/bpe1217_pres_equip_com.dbf")
+
+```
+
+```{r}
+equip_com %>% distinct(au2010) #790 aires urbaines
+equip_com %>% distinct(depcom) #35000 communes
+equip_com %>% distinct(uu2010) #2300 unites urbaines
+equip_com %>% distinct(bv2012) #1600 bassins de vie
+#equipcom indique la presence ou non d'un equipement, par aire urbaine/commune/unite urbaine/bassin de vie
+
+```
+
+
+```{r}
+uu <- read_excel("Data/UU2010au01-01-2018.xls")
+```
+
