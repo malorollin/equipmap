@@ -18,6 +18,6 @@ malo <- "gabriel"
 
 Josephine la plus belle du groupe
 
+Gabriel le plus moche en revanche
 Joséphine se fait des films dans sa tête
-
 
