@@ -41,6 +41,6 @@ equip_com %>% distinct(bv2012) #1600 bassins de vie
 
 
 ```{r}
-uu <- read_excel(file = "Data UU/UU2010 au 01-01-2018.xls")
+uu <- read_xls(file = "Data/UU2010au01-01-2018.xls")
 ```
 
