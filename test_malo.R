@@ -17,7 +17,7 @@ malo <- "sombre"
 malo <- "gabriel"
 
 Josephine la plus belle du groupe
-Gabriel le plus moche en revanche
+Gabriel le plus moche
 
 gilet_jaunes <- "Macron démission"
 
