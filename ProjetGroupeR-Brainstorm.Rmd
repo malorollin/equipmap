@@ -7,8 +7,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Installing Required Packages
-
 ```{r}
 install.packages("foreign")
 
@@ -30,8 +28,6 @@ equip_reg <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_reg.dbf")
 equip_uu <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_uu.dbf")
 equip_com <- read.dbf(file = "bpe1217_dbase/bpe1217_pres_equip_com.dbf")
 ```
-
-Inspecting data
 
 ```{r}
 equip_com %>% distinct(au2010) #790 aires urbaines
