@@ -11,6 +11,10 @@ Installing Required Packages
 
 ```{r}
 install.packages("foreign")
+
+```
+
+```{r}
 library(foreign)
 library(dplyr)
 library(tidyverse)
