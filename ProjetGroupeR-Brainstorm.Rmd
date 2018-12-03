@@ -21,12 +21,13 @@ library(readxl)
 ```
 
 ```{r}
-equip_au <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_au.dbf")
-equip_bv <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_bv.dbf")
-equip_dep <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_dep.dbf")
-equip_reg <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_reg.dbf")
-equip_uu <- read.dbf(file = "bpe1217_dbase/bpe1217_nbequip_uu.dbf")
-equip_com <- read.dbf(file = "bpe1217_dbase/bpe1217_pres_equip_com.dbf")
+equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
+equip_bv <- read.dbf(file = "Data/bpe1217_nbequip_bv.dbf")
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_reg <- read.dbf(file = "Data/bpe1217_nbequip_reg.dbf")
+equip_uu <- read.dbf(file = "Data/bpe1217_nbequip_uu.dbf")
+equip_com <- read.dbf(file = "Data/bpe1217_pres_equip_com.dbf")
+
 ```
 
 ```{r}
