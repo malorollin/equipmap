@@ -7,11 +7,13 @@ output: html_document
 
 ```{r}
 #install.packages("leaflet")
+#install.packages("sp")
 ```
 
-```{r}
+```{r, message = FALSE}
 library(leaflet)
 library(maps)
+library(rgdal)
 ```
 
 ```{r}
@@ -39,6 +41,8 @@ leaflet(data = mapStates) %>% addTiles() %>%
 
 
 ```{r}
+#Tentative de mettre les shapes de département
+
 
 ```
 
