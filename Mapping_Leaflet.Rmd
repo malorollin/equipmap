@@ -14,6 +14,7 @@ output: html_document
 library(leaflet)
 library(maps)
 library(rgdal)
+library(sp)
 ```
 
 ```{r}
@@ -42,6 +43,13 @@ leaflet(data = mapStates) %>% addTiles() %>%
 
 ```{r}
 #Tentative de mettre les shapes de département
+
+departments_shp <- readOGR( dsn=getwd(),
+  layer = "departements-20180101")
+
+#head(departments_shp)
+#summary(departments_shp)
+View(departments_shp)
 
 
 ```
