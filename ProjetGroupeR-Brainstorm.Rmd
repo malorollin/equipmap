@@ -1,5 +1,4 @@
 
----
 title: "ProjetGroupR"
 output: html_document
 ---
@@ -7,6 +6,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+Loading Packages
 
 ```{r}
 install.packages("foreign")
@@ -20,6 +21,9 @@ library(tidyverse)
 library(tidyr)
 library(readxl)
 ```
+
+
+Data Exploration
 
 ```{r}
 equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
@@ -42,6 +46,10 @@ equip_com %>% distinct(bv2012) #1600 bassins de vie
 
 
 ```{r}
+<<<<<<< HEAD
+uu <- read_xls("Data/UU2010 au 01-01-2018.xls")
+=======
 uu <- read_excel("Data/UU2010au01-01-2018.xls")
+>>>>>>> cac3a641008686df594cb636f582c46a4c78cb66
 ```
 
