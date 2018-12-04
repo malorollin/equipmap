@@ -15,6 +15,7 @@ library(leaflet)
 library(maps)
 library(rgdal)
 library(sp)
+library(tidyverse)
 ```
 
 ```{r}
@@ -61,5 +62,31 @@ leaflet(data = departments_shp) %>%
   setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
   addPolygons(fillColor = "blue", 
               highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+```
+
+```{r}
+#Travail sur l'élimination de variables et compagnies
+
+#Création d'une variable de travail
+departements_test <- departments_shp
+
+
+# departements_test@data <- departements_test@data %>% 
+#   filter(code_insee == "75")
+# 
+# leaflet(data = departements_test) %>% 
+#   addTiles() %>% 
+#   setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+#   addPolygons(fillColor = "blue", 
+#               highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
+departements_test_sub <- departements_test[departements_test$code_insee == "87",]
+
+leaflet(data = departements_test_sub) %>% 
+  addTiles() %>%
+  setView(lat = 48.5, lng = 2.5, zoom = 5) %>%
+  addPolygons(fillColor = "blue",
+              highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
 ```
 
