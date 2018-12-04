@@ -32,21 +32,18 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   library(prenoms)
   library(tidyverse)
-  data(prenoms)
 
-  data = data.frame(category = c("Healthcare","Healthcare","Healthcare","Transport","Education"),n =c("aze","dede","ognh","geb","hube"))
-  
+  data <- data.frame(category = c("Healthcare","Healthcare","Healthcare","Transport","Education"),n =c("aze","dede","ognh","geb","hube"))
   observeEvent(input$tabs,{
     updateRadioButtons(session = session, inputId = "Equipement",choices = data %>% filter(category == input$tabs) %>% distinct(n) %>% pull(n))
   })
   
   output$mymap <- renderLeaflet({
-    m %>% addProviderTiles(providers$MtbMap) %>%
-      addProviderTiles(providers$Stamen.TonerLines,options = providerTileOptions(opacity = 1)) %>%
-      addProviderTiles(providers$Stamen.TonerLabels)
+    leaflet(data = readOGR( dsn=getwd(),layer = "departements-20180101")) %>% 
+      addTiles() %>% 
+      setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+      addPolygons(fillColor = "blue", highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
   })
-  
-
 
 }
 
