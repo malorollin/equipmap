@@ -1,0 +1,63 @@
+---
+title: "Filtre_Sante"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+demographics <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 5)
+demographics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
+
+names <- top_n(demographics2, 1)
+colnames(equip_dep)[colnames(equip_dep) == "dep"] <- "DEP"
+equip_dep <- 
+  equip_dep %>% 
+  filter(as.numeric(DEP) < 97)
+
+demographics_by_dep <- demographics %>% 
+  group_by(DEP) %>% 
+  select_if(is.numeric) %>% 
+  summarise_all(funs(sum_pop = sum)) %>% 
+  filter(DEP < 96)
+
+filter(equip_dep, grepl('D', typequ))
+```
+
+
+Maternite
+- selectionne avec les femmees entre 15 et 45 ans
+
+```{r}
+maternities <-filter(equip_dep, grepl('D107', typequ))
+maternities$nb_2012 <- 
+  maternities$nb_2012 / (demographics_by_dep$C13_POP15P_CS4_sum_pop + demographics_by_dep$C13_POP15P_CS5_sum_pop)
+
+maternities$nb_2017 <- 
+  maternities$nb_2017 / (demographics_by_dep$C13_POP15P_CS4_sum_pop + demographics_by_dep$C13_POP15P_CS5_sum_pop)
+
+quantile(maternities$nb_2012, probs = seq(0 , 1, 0.2))
+
+```
+
+Urgences
+- calcule avec la population totale
+
+```{r}
+urgences <-filter(equip_dep, grepl('D106', typequ))
+
+urg <- merge(urgences, demographics_by_dep[,1:2], by = "DEP")
+urg$2012 <- 
+
+```
+
+
+
+```{r}
+equip_dep %>% select(typequ)
+?contains
+```
+
