@@ -51,6 +51,15 @@ departments_shp <- readOGR( dsn=getwd(),
 #summary(departments_shp)
 View(departments_shp)
 
+departments_shp@data
+```
 
+
+```{r}
+leaflet(data = departments_shp) %>% 
+  addTiles() %>% 
+  setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+  addPolygons(fillColor = "blue", 
+              highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
 ```
 
