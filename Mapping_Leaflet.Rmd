@@ -33,11 +33,9 @@ leaflet(df) %>% addCircles() %>% addTiles()
 ```
 
 ```{r}
-
 mapStates = map("france", fill = TRUE, plot = FALSE)
 leaflet(data = mapStates) %>% addTiles() %>%
   addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
-
 ```
 
 
@@ -52,6 +50,8 @@ departments_shp <- readOGR( dsn=getwd(),
 View(departments_shp)
 
 departments_shp@data
+departments_shp
+
 ```
 
 
