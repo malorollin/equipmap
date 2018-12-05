@@ -81,10 +81,7 @@ server <- function(input, output, session) {
   output$mymap2 <- renderLeaflet({
     color_map(maternities, input$Year, input$Equipement)
   })
-
-
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
