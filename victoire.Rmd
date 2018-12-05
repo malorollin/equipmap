@@ -122,7 +122,7 @@ spread_multiple <- function(variable, key, value) {
 }
 
 spread_transport_equip_dep <- transport_equip_dep %>%
-  myspread(typequ, c(nb_2012, nb_2017))
+  spread_multiple(typequ, c(nb_2012, nb_2017))
 View(spread_transport_equip_dep)
 
 
