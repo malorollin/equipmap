@@ -97,13 +97,27 @@ departements_test <- departements_test[!departements_test$code_insee %in%c("971"
 departements_test@data
 
 
-
-
 leaflet(data = departements_test) %>% 
   addTiles() %>%
   setView(lat = 48.5, lng = 2.5, zoom = 5) %>%
   addPolygons(fillColor = "blue",
               highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
+```
+
+
+```{r}
+dep_light <- readOGR(dsn = "departements-20140306-100m-shp", layer = "departements-20140306-100m")
+
+leaflet(data = dep_light) %>% 
+  addTiles() %>% 
+  setView(lat = 47.5, lng = 2.5, zoom = 6) %>% 
+  addPolygons(fillColor = "green", highlight = highlightOptions(color = "red", bringToFront = TRUE), label = ~nom)
+
+```
+
+```{r}
+dep_light <- dep_light
 
 ```
 
