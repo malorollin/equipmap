@@ -67,15 +67,37 @@ server <- function(input, output, session) {
     updateSelectInput(session = session, inputId = "Equipement",choices = data_eq %>% filter(category == input$tabs) %>% distinct(n) %>% pull(n),selected = NULL)
   })
     
-  map <- reactive({
+  map_tp <- reactive({
       input$Print
       isolate({
         get_map(data = spread_transport_equip_dep, Year= input$Year, eq=input$Equipement)
       })
     })
   
-  output$mymap <- renderLeaflet({
-    map()
+  map_health <- reactive({
+    input$Print
+    isolate({
+      get_map(data = spread_transport_equip_dep, Year= input$Year, eq=input$Equipement)
+    })
+  })
+  
+  map_ed <- reactive({
+    input$Print
+    isolate({
+      get_map(data = PS_per_inhabitant, Year= input$Year, eq=input$Equipement)
+    })
+  })
+  
+  output$mymap_tp <- renderLeaflet({
+    map_tp()
+  })
+  
+  output$mymap_health <- renderLeaflet({
+    map_health()
+  })
+  
+  output$mymap_ed <- renderLeaflet({
+    map_ed()
   })
   
   output$mymap2 <- renderLeaflet({
