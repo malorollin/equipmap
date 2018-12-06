@@ -17,12 +17,12 @@ ui <- fluidPage(
       radioButtons("Niveau",label = "zoom: ", choices=  c("Urban unit","Department","Region"), selected = "Department" ),
       #radioButtons("Equipement", label = "Equipement :" , choices=data %>% distinct(n) %>% pull(n)),
       #radioButtons("Type", label = "type d'equipement :" , choices=c("Healthcare","Transport","Education")),
-      selectInput("Equipement", label = "Equipement :" , choices=c("mat","E101","E102","E103","E106"),selected = NULL), 
+      selectInput("Equipement", label = "Equipement :" , choices=c("mat","E101","E102","E103","E106")),
       actionButton( "Print", "Go")
        ),
     mainPanel(
       tabsetPanel(id="tabs", 
-        tabPanel("Healthcare", leafletOutput("mymap2")),
+        tabPanel("Healthcare"),
         tabPanel("Transport", leafletOutput("mymap")),
         tabPanel("Education")
       )
@@ -35,8 +35,7 @@ server <- function(input, output, session) {
   library(tidyverse)
   
   get_map <- function(data, Year, eq){
-    var_year<- paste(as.character(eq),"_nb_",as.character(Year),sep = "")
-    dist <- data %>% dplyr::select(contains(var_year)) %>% pull()
+    dist <- data %>% dplyr::filter(typequ == eq, year==Year) %>% pull(per_inhabitant)
     bins <- quantile(dist, probs =c(0:6)/6)
     bins <- bins[!duplicated(bins)]
     pal <- colorBin("YlOrRd", domain = dist, bins = bins)
@@ -48,18 +47,10 @@ server <- function(input, output, session) {
                   highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~code_insee)
     return(res)
   }
+  #transport_per_inhabitant_and_year
   
-  color_map <- function(data, Year, eq){
-    var_year<- paste(as.character(eq),"_nb_",as.character(Year),sep = "")
-    dist <- data %>% dplyr::select(contains(var_year)) %>% pull()
-    bins <- quantile(dist, probs =c(0:6)/6)
-    bins <- bins[!duplicated(bins)]
-    pal <- colorBin("YlOrRd", domain = dist, bins = bins)
-    
-    res <- map_base %>% 
-      addPolygons(fillColor = ~pal(dist))
-    return(res)
-  }
+  
+  
   
   data_eq <- data.frame(category = c("Healthcare","Transport","Transport","Transport","Transport"),n =c("mat","E101","E102","E103","E106"))
   
@@ -70,17 +61,14 @@ server <- function(input, output, session) {
   map <- reactive({
       input$Print
       isolate({
-        get_map(data = spread_transport_equip_dep, Year= input$Year, eq=input$Equipement)
+        get_map(data = transport_per_inhabitant_and_year, Year= "2012", eq="E101")
       })
     })
   
   output$mymap <- renderLeaflet({
     map()
   })
-  
-  output$mymap2 <- renderLeaflet({
-    color_map(maternities, input$Year, input$Equipement)
-  })
+
 }
 
 # Run the application 

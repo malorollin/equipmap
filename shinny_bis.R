@@ -35,3 +35,17 @@ map_base <- leaflet(data = departments_shp) %>%
   setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
   addPolygons(data= departments_shp, fillColor = "white",   weight = 1, opacity = 0.5,   color = "white", dashArray = "3", fillOpacity = 0.7,
               highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~code_insee)
+
+new_get_map <- function(data, Year, eq){
+  dist <- data %>% dplyr::filter(typequ == eq, year==Year) %>% pull(per_inhabitant)
+  bins <- quantile(dist, probs =c(0:6)/6)
+  bins <- bins[!duplicated(bins)]
+  pal <- colorBin("YlOrRd", domain = dist, bins = bins)
+  
+  res <- leaflet(data = departments_shp) %>% 
+    addTiles() %>% 
+    setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+    addPolygons(data= departments_shp, fillColor = ~pal(dist),   weight = 1, opacity = 0.5,   color = "white", dashArray = "3", fillOpacity = 0.7,
+                highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~code_insee)
+  return(res)
+}
