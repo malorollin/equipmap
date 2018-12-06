@@ -7,6 +7,30 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Load the Equipment Departmental data
+
+```{r}
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+```
+
+1) Load the Public Sector data, keeping only the studied equipment
+
+```{r}
+equip_dep_SP <- filter(equip_dep, grepl('A', typequ))
+public_var <- c("A104", "A105", "A106", "A107", "A108", "A109", "A206", "A208")
+not_metro <- c("971", "972", "973", "974")
+equip_dep_SP <- equip_dep_SP %>% 
+  filter(typequ %in% public_var) %>% 
+  filter(!as.character(dep) %in% not_metro)
+```
+
+2) Load the Transport data
+
+```{r}
+transport_equip_dep <- equip_dep %>%
+  filter(grepl('E', typequ)) %>% filter(as.numeric(dep) < 97)
+```
+
 In order to obtain legible information in our UI, we need to translate the INSEE encoding of equipment into their actual names. We therefore create a dataframe linking all the encoding of the equipment studied to their name:
 
 ```{r}
