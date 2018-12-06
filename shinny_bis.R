@@ -5,7 +5,7 @@ data <- data.frame(category = c("Healthcare","Transport","Transport","Transport"
 #maternities<- maternities[-seq(nrow(maternities),nrow(maternities)-3),]
 #maternities <- maternities %>% rename("mat_nb_2012" = nb_2012, "mat_nb_2017" = nb_2017)
 
-departments_shp <- readOGR( dsn=getwd(), layer = "departements-20180101")
+departments_shp <- readOGR( dsn=getwd(), layer = "departements-20140306-100m")
 departments_shp <- departments_shp[!departments_shp$code_insee %in%c("971", "972", "973", "974", "975", "976", "69M"),]
 departments_shp <- departments_shp[order(departments_shp$code_insee),]
 
