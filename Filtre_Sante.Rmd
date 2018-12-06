@@ -18,16 +18,16 @@ library(readxl)
 
 ```{r}
 equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
-health_per_inhabitantgraphics <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 5)
-health_per_inhabitantgraphics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
+demographics <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 5)
+demographics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
 
-names <- top_n(health_per_inhabitantgraphics2, 1)
+names <- top_n(demographics2, 1)
 colnames(equip_dep)[colnames(equip_dep) == "dep"] <- "DEP"
 equip_dep <- 
   equip_dep %>% 
   filter(as.numeric(DEP) < 97)
 
-health_per_inhabitantgraphics_by_dep <- health_per_inhabitantgraphics %>% 
+demographics_by_dep <- demographics %>% 
   group_by(DEP) %>% 
   select_if(is.numeric) %>% 
   summarise_all(funs(sum_pop = sum)) %>% 
@@ -78,10 +78,10 @@ Maternite
 ```{r}
 maternities <-filter(equip_dep, grepl('D107', typequ))
 maternities$nb_2012 <- 
-  maternities$nb_2012 / (health_per_inhabitantgraphics_by_dep$C13_POP15P_CS4_sum_pop + health_per_inhabitantgraphics_by_dep$C13_POP15P_CS5_sum_pop)
+  maternities$nb_2012 / (demographics_by_dep$C13_POP15P_CS4_sum_pop + demographics_by_dep$C13_POP15P_CS5_sum_pop)
 
 maternities$nb_2017 <- 
-  maternities$nb_2017 / (health_per_inhabitantgraphics_by_dep$C13_POP15P_CS4_sum_pop + health_per_inhabitantgraphics_by_dep$C13_POP15P_CS5_sum_pop)
+  maternities$nb_2017 / (demographics_by_dep$C13_POP15P_CS4_sum_pop + demographics_by_dep$C13_POP15P_CS5_sum_pop)
 
 
 mat_dep <- total %>%
@@ -93,7 +93,7 @@ mat_dep
 urgences_dep
 
 
-total <- merge(equip_dep, health_per_inhabitantgraphics_by_dep, by = "DEP")
+total <- merge(equip_dep, demographics_by_dep, by = "DEP")
 total %>% distinct(DEP)
 
 total %>% 
@@ -115,7 +115,7 @@ total$nb_2012 / (total$C13_POP15P_CS4_sum_pop + total$C13_POP15P_CS5_sum_pop)
 
 
 maternities$nb_2017 <- 
-  maternities$nb_2017 / (health_per_inhabitantgraphics_by_dep$C13_POP15P_CS4_sum_pop + health_per_inhabitantgraphics_by_dep$C13_POP15P_CS5_sum_pop)
+  maternities$nb_2017 / (demographics_by_dep$C13_POP15P_CS4_sum_pop + demographics_by_dep$C13_POP15P_CS5_sum_pop)
 
 quantile(maternities$nb_2012, probs = seq(0 , 1, 0.2))
 
@@ -132,7 +132,7 @@ Urgences
 ```{r}
 urgences <-filter(equip_dep, grepl('D106', typequ))
 
-urg <- merge(urgences, health_per_inhabitantgraphics_by_dep[,1:2], by = "DEP")
+urg <- merge(urgences, demographics_by_dep[,1:2], by = "DEP")
 urg$2012 <- 
 
 ```
