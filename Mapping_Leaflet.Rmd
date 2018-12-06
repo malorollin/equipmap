@@ -1,3 +1,115 @@
+<<<<<<< HEAD
+
+---
+title: "Mapping"
+author: "Gabriel Prunier-Duparge"
+date: "3 décembre 2018"
+output: html_document
+---
+
+```{r}
+#install.packages("leaflet")
+#install.packages("sp")
+```
+
+```{r, message = FALSE}
+library(leaflet)
+library(maps)
+library(rgdal)
+library(sp)
+library(tidyverse)
+```
+
+```{r}
+
+m <- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+m 
+
+```
+
+
+```{r}
+df = data.frame(Lat = 30:40, Long = rnorm(11))
+leaflet(df) %>% addCircles() %>% addTiles()
+```
+
+```{r}
+
+mapStates = map("france", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
+
+```
+
+
+```{r}
+#Tentative de mettre les shapes de département
+
+departments_shp <- readOGR( dsn=getwd(),
+  layer = "departements-20180101")
+
+#head(departments_shp)
+#summary(departments_shp)
+View(departments_shp)
+
+departments_shp@data
+```
+
+
+```{r}
+leaflet(data = departments_shp) %>% 
+  addTiles() %>% 
+  setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+  addPolygons(fillColor = "blue", 
+              highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+```
+
+```{r}
+#Travail sur l'élimination de variables et compagnies
+
+#Création d'une variable de travail
+departements_test <- departments_shp
+departements_test@data
+
+# departements_test@data <- departements_test@data %>% 
+#   filter(code_insee == "75")
+# 
+# leaflet(data = departements_test) %>% 
+#   addTiles() %>% 
+#   setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
+#   addPolygons(fillColor = "blue", 
+#               highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
+departements_test_sub <- departements_test[departements_test$code_insee == "87",]
+
+leaflet(data = departements_test_sub) %>% 
+  addTiles() %>%
+  setView(lat = 48.5, lng = 2.5, zoom = 5) %>%
+  addPolygons(fillColor = "blue",
+              highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
+```
+
+```{r}
+#Let's get rid of overseas department
+
+departements_test <- departements_test[!departements_test$code_insee %in%c("971", "972", "973", "974", "975", "976", "69M"),]
+departements_test@data
+
+
+
+
+leaflet(data = departements_test) %>% 
+  addTiles() %>%
+  setView(lat = 48.5, lng = 2.5, zoom = 5) %>%
+  addPolygons(fillColor = "blue",
+              highlight = highlightOptions(color = "red", bringToFront = TRUE), label=~nom)
+
+```
+
+=======
 ---
 title: "Mapping"
 author: "Gabriel Prunier-Duparge"
@@ -121,3 +233,4 @@ dep_light <- dep_light
 
 ```
 
+>>>>>>> e4a00b946f10fd7cfc55a9a015d7b37966f86423

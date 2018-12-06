@@ -1,0 +1,148 @@
+---
+title: "R_project_Victoire"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+---
+title: "ProjetGroupR"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("foreign")
+```
+```{r}
+install.packages("qdapTools")
+```
+
+
+```{r}
+#Test
+library(foreign)
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(readxl)
+library(data.table)
+
+
+library('qdapTools')
+library(rlang)
+```
+
+```{r}
+equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
+equip_bv <- read.dbf(file = "Data/bpe1217_nbequip_bv.dbf")
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_reg <- read.dbf(file = "Data/bpe1217_nbequip_reg.dbf")
+equip_uu <- read.dbf(file = "Data/bpe1217_nbequip_uu.dbf")
+equip_com <- read.dbf(file = "Data/bpe1217_pres_equip_com.dbf")
+
+
+#View(equip_au)
+#View(equip_bv)
+#View(equip_dep)
+#View(equip_reg)
+#View(equip_uu)
+#View(equip_com)
+
+```
+
+```{r}
+equip_com %>% distinct(au2010) #790 aires urbaines
+equip_com %>% distinct(depcom) #35000 communes
+equip_com %>% distinct(uu2010) #2300 unites urbaines
+equip_com %>% distinct(bv2012) #1600 bassins de vie
+#equipcom indique la presence ou non d'un equipement, par aire urbaine/commune/unite urbaine/bassin de vie
+
+```
+
+
+```{r}
+demographics <- read_excel(path ="Data/base-ic-evol-struct-pop-2013.xlsx", sheet = 1, skip = 5)
+View(demographics)
+dim(demographics)
+```
+
+
+```{r}
+transport_equip_dep <- equip_dep %>%
+  filter(grepl('E', typequ)) %>% filter(as.numeric(dep) < 97)
+View(transport_equip_dep)
+```
+
+
+```{r}
+demographics_by_dep <- demographics %>% 
+  group_by(DEP) %>% 
+  select_if(is.numeric) %>% 
+  summarise_all(funs(sum_pop = sum)) %>% 
+  filter(DEP < 97)
+
+View(demographics_by_dep)
+names(demographics_by_dep)
+dim(demographics_by_dep)
+```
+
+
+```{r}
+transport_and_pop_data <- merge(transport_equip_dep, demographics_by_dep[,1:2], by.y = "DEP", by.x = "dep")
+head(transport_and_pop_data)
+
+transport_per_inhabitant <- transport_and_pop_data %>% 
+  mutate("2012" = transport_and_pop_data$nb_2012 / transport_and_pop_data$P13_POP_sum_pop) %>%
+  mutate("2017" = transport_and_pop_data$nb_2017 / transport_and_pop_data$P13_POP_sum_pop)
+View(transport_per_inhabitant)
+
+transport_per_inhabitant_and_year <- transport_per_inhabitant %>%
+  gather(key = year, value = per_inhabitant, -c(1:5))
+View(transport_per_inhabitant_and_year)
+```
+
+
+```{r}
+spread_multiple <- function(variable, key, value) {
+    # quote key
+    keyq <- rlang::enquo(key)
+    # break value vector into quotes
+    valueq <- rlang::enquo(value)
+    s <- rlang::quos(!!valueq)
+    variable %>% gather(variable, value, !!!s) %>%
+        unite(temp, !!keyq, variable) %>%
+        spread(temp, value)
+}
+
+spread_transport_equip_dep <- transport_equip_dep %>%
+  spread_multiple(typequ, c(nb_2012, nb_2017))
+View(spread_transport_equip_dep)
+
+
+spread_transport_equip_dep %>% sapply()
+
+
+spread_transport_equip_dep %>% map( .f = )
+
+equ_per_capita <- spread_transport_equip_dep / demographics_by_dep[,2]
+head(equ_per_capita)
+
+#tspread_transport_equip_dep <- transpose(spread_transport_equip_dep)
+
+#colnames(tspread_transport_equip_dep) = tspread_transport_equip_dep[1, ] # the first row will be the header
+#tspread_transport_equip_dep = tspread_transport_equip_dep[-1, ]
+#tspread_transport_equip_dep
+
+#colnames(tspread_transport_equip_dep) <- as.character(unlist(tspread_transport_equip_dep[1,]))
+#tspread_transport_equip_dep = tspread_transport_equip_dep[-1, ]
+#tspread_transport_equip_dep
+
+```
+
