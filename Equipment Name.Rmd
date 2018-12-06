@@ -1,0 +1,28 @@
+---
+title: "Equipment name"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In order to obtain legible information in our UI, we need to translate the INSEE encoding of equipment into their actual names. We therefore create a dataframe linking all the encoding of the equipment studied to their name:
+
+```{r}
+equipment_name_tr <- transport_equip_dep %>% 
+  distinct(typequ) %>% 
+  mutate(name = c("Taxi", "Aéroport","Gare avec desserte train à grande vitesse (TAGV)", "Gare sans desserte train à grande vitesse (TAGV)"))
+
+equipment_name_SP <- equip_dep_SP %>% 
+  distinct(typequ) %>% 
+  mutate(name = c("Gendarmerie","Cour d'appel", "Tribunal de grande instance (TGI)", "Tribunal d'instance", "Conseil de prud'hommes", "Tribunal de commerce", "Bureau de poste", "Agence postale communale "))
+
+equipment_name_santé <- data.frame(c("D101", "D102", "D103", "D104", "D105", "D106", "D107", "D108", "D109"), c("Établissement santé court séjour", "Établissement santé moyen séjour", "Établissement santé long séjour", "Établissement psychiatrique avec hébergement", "Centre lutte cancer", "Urgences", "Maternité", "Centre de santé", "Structures psychiatriques en ambulatoire")) 
+colnames(equipment_name_santé) [1] <- "typequ"
+colnames(equipment_name_santé) [2] <- "name"
+
+equipment_name <- rbind(equipment_name_SP, equipment_name_santé, equipment_name_tr)
+equipment_name
+```
+
