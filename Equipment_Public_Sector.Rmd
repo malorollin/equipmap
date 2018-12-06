@@ -1,0 +1,110 @@
+---
+title: "Equipment_Public_Sector"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages#
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(foreign)
+library(readxl)
+```
+
+#Demographics Data#
+
+```{r}
+demographics <- read_excel(path ="Data/base-ic-evol-struct-pop-2013.xlsx", sheet = 1, skip = 5)
+View(demographics)
+```
+
+We need to work with certain totals of the population per department and per age group
+
+```{r}
+demographics_by_dep <- demographics %>% 
+  group_by(DEP) %>% 
+  select_if(is.numeric) %>% 
+  summarise_all(funs(sum_pop = sum))
+```
+
+For our study, we will focus on Metropolitan France
+
+```{r}
+demographics_by_dep <- demographics_by_dep %>% 
+  filter(DEP<=95)
+
+View(demographics_by_dep)
+```
+
+#Equipment Data#
+
+```{r}
+equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
+equip_bv <- read.dbf(file = "Data/bpe1217_nbequip_bv.dbf")
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_reg <- read.dbf(file = "Data/bpe1217_nbequip_reg.dbf")
+equip_uu <- read.dbf(file = "Data/bpe1217_nbequip_uu.dbf")
+equip_com <- read.dbf(file = "Data/bpe1217_pres_equip_com.dbf")
+```
+
+#Departmental Equipment Data for Secteur Public (type A)#
+
+```{r}
+equip_dep_SP <- filter(equip_dep, grepl('A', typequ))
+```
+
+##Choice of variables##
+
+```{r}
+equip_dep_SP %>% distinct(typequ)
+```
+
+Given the public investment nature of our study, we will discard privately owned businesses and focus solely on the public sector. We will also focus only on Metropolitan france. As such we keep the following variables:
+
+A104 - Gendarmerie 
+A105 - Cour d'appel 
+A106 - Tribunal de grande instance (TGI)
+A107 - Tribunal d'instance
+A108 - Conseil de prud'hommes 
+A109 - Tribunal de commerce 
+A206 - Bureau de poste
+A208 - Agence postale communale 
+
+```{r}
+public_var <- c("A104", "A105", "A106", "A107", "A108", "A109", "A206", "A208")
+not_metro <- c("971", "972", "973", "974")
+equip_dep_SP <- equip_dep_SP %>% 
+  filter(typequ %in% public_var) %>% 
+  filter(!as.character(dep) %in% not_metro)
+
+View(equip_dep_SP)
+```
+
+# Cross the datasets #
+
+We have the population per department and the number of equipment types per department. We can start to build a proportions dataset by merging the two datasets by Department (since both variables are common and can help index and match common elements)
+
+
+```{r}
+PS_and_pop_data <- merge(equip_dep_SP, demographics_by_dep[,1:2], by.y = "DEP", by.x = "dep")
+head(PS_and_pop_data)
+
+PS_per_inhabitant <- PS_and_pop_data  %>% 
+  mutate("2012" = PS_and_pop_data$nb_2012 / PS_and_pop_data$P13_POP_sum_pop) %>%
+  mutate("2017" = PS_and_pop_data$nb_2017 / PS_and_pop_data$P13_POP_sum_pop)
+View(PS_per_inhabitant)
+
+PS_per_capita <- PS_per_inhabitant %>%
+  gather(key = year, value = per_inhabitant, -c(1:5))
+View(PS_per_capita)
+```
+
+We now have a long dataset that displays each row as an observation of a specific equipment (A104, A105, etc.) in a department (01:95), at a specific year (2012 or 2017), and its associated proportion of equipment per inhabitant of that department for a given year. 
+
+This proportion data can be exported and plotted on a map of Metropolitan France in order to compare the levels of proportions geographically. 
