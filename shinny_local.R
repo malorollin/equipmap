@@ -4,7 +4,9 @@ library(leaflet)
 library(maps)
 library(dplyr)
 
-# Define UI for application that draws a histogram
+
+#l'application affiche un message d'erreur tant qu'on n'a pas appuyé sur le bouton d'affichage : pas très grave car ça disparait (mais il faudra quand même le régler)
+
 ui <- fluidPage(
   
   titlePanel("Public equipment in France"),
@@ -13,18 +15,16 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       radioButtons("Year",label = "Year", choices = c("2012", "2017")),
-      radioButtons("Type",label = "type: ", choices= c("par habitant","nombre total") ),
-      radioButtons("Niveau",label = "zoom: ", choices=  c("Urban unit","Department","Region"), selected = "Department" ),
-      #radioButtons("Equipement", label = "Equipement :" , choices=data %>% distinct(n) %>% pull(n)),
-      #radioButtons("Type", label = "type d'equipement :" , choices=c("Healthcare","Transport","Education")),
-      selectInput("Equipement", label = "Equipement :" , choices=c("mat","E101","E102","E103","E106"),selected = NULL), 
+      #par défaut, liste de tous les équipements de toutes les catégories
+      selectInput("Equipement", label = "Equipement :" , choices=equi_total %>% dplyr::pull(typequ),selected = NULL), 
       actionButton( "Print", "Go")
        ),
     mainPanel(
       tabsetPanel(id="tabs", 
-        tabPanel("Healthcare", leafletOutput("mymap2")),
-        tabPanel("Transport", leafletOutput("mymap")),
-        tabPanel("Education")
+        #chaque onglet à sa map (car chaque onglet charge un df différent -> si on unifie toutes les données en 1 df, on pourrait utiliser une même map)
+        tabPanel("Healthcare", leafletOutput("mymap_health")),
+        tabPanel("Transport", leafletOutput("mymap_tp")),
+        tabPanel("Education", leafletOutput("mymap_ed"))
       )
     )
   )
@@ -34,9 +34,9 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   library(tidyverse)
   
+  #fonction poour obtenir la map d'un équupement donnée, pour une année
   get_map <- function(data, Year, eq){
-    var_year<- paste(as.character(eq),"_nb_",as.character(Year),sep = "")
-    dist <- data %>% dplyr::select(contains(var_year)) %>% pull()
+    dist <- data %>% dplyr::filter(year==Year,typequ == eq) %>% pull(per_inhabitant)
     bins <- quantile(dist, probs =c(0:6)/6)
     bins <- bins[!duplicated(bins)]
     pal <- colorBin("YlOrRd", domain = dist, bins = bins)
@@ -49,45 +49,32 @@ server <- function(input, output, session) {
     return(res)
   }
   
-  color_map <- function(data, Year, eq){
-    var_year<- paste(as.character(eq),"_nb_",as.character(Year),sep = "")
-    dist <- data %>% dplyr::select(contains(var_year)) %>% pull()
-    bins <- quantile(dist, probs =c(0:6)/6)
-    bins <- bins[!duplicated(bins)]
-    pal <- colorBin("YlOrRd", domain = dist, bins = bins)
-    
-    res <- map_base %>% 
-      addPolygons(fillColor = ~pal(dist))
-    return(res)
-  }
-  
-  data_eq <- data.frame(category = c("Healthcare","Transport","Transport","Transport","Transport"),n =c("mat","E101","E102","E103","E106"))
-  
+  #mise à jour des propositions d'équipements à afficher suivant l'onglet dans lequel on se trouve
   observeEvent(input$tabs,{
-    updateSelectInput(session = session, inputId = "Equipement",choices = data_eq %>% filter(category == input$tabs) %>% distinct(n) %>% pull(n),selected = NULL)
+    updateSelectInput(session = session, inputId = "Equipement",choices = equi_total %>% filter(category == input$tabs) %>% pull(typequ),selected = NULL)
   })
-    
+  
+  #chargement de la map que si on appuie sur le bouton
   map_tp <- reactive({
       input$Print
       isolate({
-        get_map(data = spread_transport_equip_dep, Year= input$Year, eq=input$Equipement)
+        get_map(data = data_tp, Year= input$Year, eq=input$Equipement)
       })
     })
-  
   map_health <- reactive({
     input$Print
     isolate({
-      get_map(data = spread_transport_equip_dep, Year= input$Year, eq=input$Equipement)
+      get_map(data = data_health, Year= input$Year, eq=input$Equipement)
     })
   })
-  
   map_ed <- reactive({
     input$Print
     isolate({
-      get_map(data = PS_per_inhabitant, Year= input$Year, eq=input$Equipement)
+      get_map(data = data_ed, Year= input$Year, eq=input$Equipement)
     })
   })
   
+  #les output correspondant aux 3 maps réactives
   output$mymap_tp <- renderLeaflet({
     map_tp()
   })
@@ -99,12 +86,6 @@ server <- function(input, output, session) {
   output$mymap_ed <- renderLeaflet({
     map_ed()
   })
-  
-  output$mymap2 <- renderLeaflet({
-    color_map(maternities, input$Year, input$Equipement)
-  })
-
-
 }
 
 # Run the application 
