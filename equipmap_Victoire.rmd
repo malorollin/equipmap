@@ -1,0 +1,117 @@
+---
+title: "R_project_Victoire"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+---
+title: "ProjetGroupR"
+output: html_document
+---
+Le but est d'obtenir, à l'échelle des départements, le nombre de chaque équipement de transport par tête. 
+Ce code se concentre donc sur les données de transports, nous disposons de données pour les taxis, les aéroports, les gares avec desserte train à grande vitesse (TAGV),  gares sans desserte train à grande vitesse (TAGV).  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Install package "foreign" to be able to read dbf files
+#install.packages("foreign")
+```
+
+
+```{r}
+#Download relevant libraries 
+library(foreign)
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+library(readxl)
+library(data.table)
+#install.packages("qdapTools")
+library('qdapTools')
+library(rlang)
+```
+
+```{r}
+#On utilise read.dbf pour lire les 6 fichiers dbf à notre disposition. Chaque document contient le nombre d'équipements pour une unité géographique en particulier : "Aire urbaine", "Bassin de vie", "Département", "Région" and "Unité urbaine". Le dernier fichier, equipcom indique la presence ou non d'un equipement, par aire urbaine/commune/unite urbaine/bassin de vie
+equip_au <- read.dbf(file = "Data/bpe1217_nbequip_au.dbf")
+equip_bv <- read.dbf(file = "Data/bpe1217_nbequip_bv.dbf")
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_reg <- read.dbf(file = "Data/bpe1217_nbequip_reg.dbf")
+equip_uu <- read.dbf(file = "Data/bpe1217_nbequip_uu.dbf")
+equip_com <- read.dbf(file = "Data/bpe1217_pres_equip_com.dbf") 
+
+
+#View(equip_au)
+#View(equip_bv)
+#View(equip_dep)
+#View(equip_reg)
+#View(equip_uu)
+#View(equip_com)
+
+```
+
+```{r}
+#On regarde le nombre de chacune des unités géographiques mentionnées ci-dessus en utilisant distinct
+equip_com %>% distinct(au2010) #790 aires urbaines
+equip_com %>% distinct(depcom) #35000 communes
+equip_com %>% distinct(uu2010) #2300 unites urbaines
+equip_com %>% distinct(bv2012) #1600 bassins de vie
+
+
+```
+
+
+```{r}
+#On lit l'excel contenant les informations de population pour l'année 2013. 
+demographics <- read_excel(path ="Data/base-ic-evol-struct-pop-2013.xlsx", sheet = 1, skip = 5)
+View(demographics)
+dim(demographics)
+```
+
+
+```{r}
+#le code des équipements relatifs aux transports commence par un E. On ne sélectionne donc que ces équipements
+transport_equip_dep <- equip_dep %>%
+  filter(grepl('E', typequ)) %>% filter(as.numeric(dep) < 97)
+#View(transport_equip_dep)
+```
+
+
+```{r}
+#les données de démographie sont par commune, on les aggrège pour les avoir par département. On ne sélectionne que les départements de France métropolitaine, on exclu donc les DOM TOM.  
+demographics_by_dep <- demographics %>% 
+  group_by(DEP) %>% 
+  select_if(is.numeric) %>% 
+  summarise_all(funs(sum_pop = sum)) %>% 
+  filter(DEP < 97)
+
+#View(demographics_by_dep)
+names(demographics_by_dep)
+dim(demographics_by_dep)
+```
+
+
+```{r}
+#on crée un dataset contenant un ligne par équipement et par département avec la population associé au département en question
+transport_and_pop_data <- merge(transport_equip_dep, demographics_by_dep[,1:2], by.y = "DEP", by.x = "dep")
+head(transport_and_pop_data)
+View(transport_and_pop_data)
+
+#on souhaite avoir le nombre d'équipement par tête. On divise donc le nombre d'équipement du département par la population de ce département. 
+transport_per_inhabitant <- transport_and_pop_data %>% 
+  mutate("2012" = transport_and_pop_data$nb_2012 / transport_and_pop_data$P13_POP_sum_pop) %>%
+  mutate("2017" = transport_and_pop_data$nb_2017 / transport_and_pop_data$P13_POP_sum_pop)
+View(transport_per_inhabitant)
+
+#pour faciliter la création de filtres dans la shiny app on utilise gather afin de transformer la colonne year par deux colonnes 2012 et 2017. 
+transport_per_inhabitant_and_year <- transport_per_inhabitant %>%
+  gather(key = year, value = per_inhabitant, -c(1:5))
+View(transport_per_inhabitant_and_year)
+```
