@@ -19,9 +19,7 @@ library(readxl)
 ```{r}
 equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
 demographics <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 5)
-demographics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
 
-names <- top_n(demographics2, 1)
 colnames(equip_dep)[colnames(equip_dep) == "dep"] <- "DEP"
 equip_dep <- 
   equip_dep %>% 
