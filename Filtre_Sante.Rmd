@@ -19,7 +19,7 @@ library(readxl)
 ```{r}
 equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
 demographics <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 5)
-demographics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
+#demographics2 <- read_excel("Data/base-ic-evol-struct-pop-2013.xlsx", skip = 4)
 #names <- top_n(demographics2, 1)
 colnames(equip_dep)[colnames(equip_dep) == "dep"] <- "DEP"
 equip_dep <- 
@@ -63,6 +63,8 @@ health_per_inhabitant <- health_per_inhabitant %>%
   dplyr::select(c(1:4, 77, 78))
 health_per_inhabitant_and_year <- health_per_inhabitant %>% 
   gather(key = year, value = per_person, -c(1:4))
+
+write.csv(health_per_inhabitant, file = "Health.csv")
 ```
 
 
