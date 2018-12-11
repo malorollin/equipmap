@@ -1,0 +1,52 @@
+---
+title: "Equipment name"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the Equipment Departmental data
+
+```{r}
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+```
+
+1) Load the Public Sector data, keeping only the studied equipment
+
+```{r}
+equip_dep_SP <- filter(equip_dep, grepl('A', typequ))
+public_var <- c("A104", "A105", "A106", "A107", "A108", "A109", "A206", "A208")
+not_metro <- c("971", "972", "973", "974")
+equip_dep_SP <- equip_dep_SP %>% 
+  filter(typequ %in% public_var) %>% 
+  filter(!as.character(dep) %in% not_metro)
+```
+
+2) Load the Transport data
+
+```{r}
+transport_equip_dep <- equip_dep %>%
+  filter(grepl('E', typequ)) %>% filter(as.numeric(dep) < 97)
+```
+
+In order to obtain legible information in our UI, we need to translate the INSEE encoding of equipment into their actual names. We therefore create a dataframe linking all the encoding of the equipment studied to their name:
+
+```{r}
+equipment_name_tr <- transport_equip_dep %>% 
+  distinct(typequ) %>% 
+  mutate(name = c("Taxi", "Aéroport","Gare avec desserte train à grande vitesse (TAGV)", "Gare sans desserte train à grande vitesse (TAGV)"))
+
+equipment_name_SP <- equip_dep_SP %>% 
+  distinct(typequ) %>% 
+  mutate(name = c("Gendarmerie","Cour d'appel", "Tribunal de grande instance (TGI)", "Tribunal d'instance", "Conseil de prud'hommes", "Tribunal de commerce", "Bureau de poste", "Agence postale communale "))
+
+equipment_name_sante <- data.frame(c("D101", "D102", "D103", "D104", "D105", "D106", "D107", "D108", "D109"), c("Établissement santé court séjour", "Établissement santé moyen séjour", "Établissement santé long séjour", "Établissement psychiatrique avec hébergement", "Centre lutte cancer", "Urgences", "Maternité", "Centre de santé", "Structures psychiatriques en ambulatoire")) 
+colnames(equipment_name_sante) [1] <- "typequ"
+colnames(equipment_name_sante) [2] <- "name"
+
+equipment_name <- rbind(equipment_name_SP, equipment_name_sante, equipment_name_tr)
+equipment_name
+```
+

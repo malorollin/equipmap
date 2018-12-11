@@ -1,3 +1,4 @@
+
 ---
 title: "Mapping"
 author: "Gabriel Prunier-Duparge"
@@ -121,6 +122,7 @@ dep_light <- dep_light[!dep_light$code_insee %in%c("971", "972", "973", "974", "
 dep_light@data
 
 ```
+
 
 
 ```{r}
