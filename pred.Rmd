@@ -1,0 +1,66 @@
+```{r}
+data_ed <- PS_per_capita 
+data_health <- health_per_inhabitant_and_year %>% rename(per_inhabitant = per_person) %>% rename(dep=DEP)
+data_tp <- transport_per_inhabitant_and_year 
+
+equi_total_bis <- cbind(equipment_name, category=c("Education","Education","Education","Education","Education","Education","Education","Education","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Transport","Transport","Transport","Transport"))
+```
+
+
+
+```{r}
+ed <- data_ed %>% select(dep,typequ,year,per_inhabitant) %>% spread_multiple(c(year,typequ),per_inhabitant)#tableau 96dep x (8typeqx2ans) 
+ed_bis <- data_ed %>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans + somme) 
+tp_bis <- data_tp%>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans + somme) 
+health_bis <- data_health %>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans +somme) 
+```
+
+
+```{r}
+tot <- cbind(ed_bis, tp_bis %>% select(-1),health_bis%>% select(-1))
+tot
+```
+
+```{r}
+pauv<- read_excel("pred/C07-ISD_Pauvrete_Monetaire.xls")
+pauvrete <- pauv[-c(1:5,102:110),]
+pauvrete<- pauvrete %>% select(c(1,3)) %>% rename(pauvrete = X__2, dep =1 ) %>% mutate(pauvrete=as.numeric(pauvrete)) %>% arrange(dep)
+
+new <- cbind(tot,pauvrete %>% select(pauvrete))
+new
+```
+
+```{r}
+niv<- read_excel("pred/C09-ISD_Niveau_De_Vie_Des_Menages.xls")
+niveau <- niv[-c(1:5,102:110),]
+niveau<- niveau %>% select(c(1,3)) %>% rename(niveau = X__2, dep =1 ) %>% mutate(niveau=as.numeric(niveau)) %>% arrange(dep)
+
+new <- cbind(tot,pauvrete %>% select(pauvrete),niveau %>% select(niveau))
+new
+
+```
+
+
+```{r}
+library(mlbench)
+lm1 <- lm(niveau~., data=new[,-1])
+summary(lm1)
+step(lm1,direction = "both")
+```
+```{r}
+summary(lm(formula = niveau ~ A104 + A107 + A108 + A206 + A208 + E101 + 
+    D107 + pauvrete, data = new[, -1]))
+```
+
+
+```{r}
+library(FactoMineR)
+PCA(new, quali.sup=1)
+```
+
+
+```{r}
+lm2 <- lm(E101~niveau + pauvrete + niveau*pauvrete, data=new[,-1])
+summary(lm2)
+```
+
