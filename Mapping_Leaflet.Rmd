@@ -117,7 +117,27 @@ leaflet(data = dep_light) %>%
 ```
 
 ```{r}
-dep_light <- dep_light
+dep_light <- dep_light[!dep_light$code_insee %in%c("971", "972", "973", "974", "976"),]
+dep_light@data
 
 ```
+
+
+```{r}
+rail_72 <- readOGR(dsn = "departement-72", layer = "railways")
+points_72 <- readOGR(dsn = "departement-72", layer = "points")
+
+points_72_H <- points_72[points_72$type == "hospital",]
+
+leaflet(data=points_72_H) %>% 
+  addTiles() %>% 
+  setView(lat=47.5, lng = 2.5, zoom = 8) %>% 
+  addCircleMarkers(label = ~type)
+
+
+points_72@data %>% 
+  group_by(points_72$type) %>% 
+  summarise(tot = n())
+```
+
 
