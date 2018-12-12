@@ -1,0 +1,13 @@
+---
+title: "fonctions_regression"
+author: "Gabriel Prunier-Duparge"
+date: "11 décembre 2018"
+output: html_document
+---
+
+Petit RMarkdown pour écrire nos fonctions de regression et compagnie
+
+```{r}
+
+```
+
