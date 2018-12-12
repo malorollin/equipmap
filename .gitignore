@@ -2,7 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
-<<<<<<< HEAD
-=======
-Data/*
->>>>>>> 465364ec0de63806f070033f0985fff35ebc4254
+fonctions_regression.rmd
