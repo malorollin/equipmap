@@ -21,81 +21,59 @@ Load the Department equipment data:
 data_dpt <- read.csv("Data/Equipment1.csv")
 ```
 
-Import useful Departmental indexes from INSEE to cross check with our data:
+Index pre-processing:
+
+Niveau de Vie
 
 ```{r}
-chomage <- read_excel("Data/data_chomage.xlsx", skip =3) %>% 
-  filter(!Code %in% c("971", "972", "973", "974", "976")) %>% 
-  dplyr::select(-"Libellé")
-colnames(chomage) [1] <- "dep"
-View(chomage)
-
-pauvreté <- read_excel("Data/data_pauvreté.xls", sheet = 2, skip=3)
-colnames(pauvreté) [1] <- "dep"
-colnames(pauvreté) [3] <- "Médiane du niveau de vie (euros)"
-colnames(pauvreté) [5] <- "Taux de pauvreté (%)"
-colnames(pauvreté) [4] <- "Delete1"
-colnames(pauvreté) [6] <- "Delete2"
-pauvreté <- pauvreté %>% 
-  dplyr::select(-"Delete1", -"Delete2", -"Nom")
+niv <- read_excel("Data/C09-ISD_Niveau_De_Vie_Des_Menages.xls", skip = 5)
+colnames(niv) [1] <- "dep"
+colnames(niv) [2] <- "delete"
+colnames(niv) [3] <- "Niveau_de_vie"
+niv <- niv %>% 
+  filter(dep<96) %>% 
+  dplyr::select(-"delete")
 ```
 
-Merge indexes into Department Equipment dataframe to perform analyses:
+Pauvreté
 
 ```{r}
-data_dpt <- data_dpt %>% 
-  left_join(chomage, by = "dep")
-data_dpt <- data_dpt %>% 
-  left_join(pauvreté, by = "dep")
-
-colnames(data_dpt) [22] <- "Chômage"
-colnames(data_dpt) [23] <- "Niveau_de_vie"
-colnames(data_dpt) [24] <- "Pauvreté"
-data_dpt$Chômage <- as.numeric(data_dpt$Chômage)
-data_dpt$dep <- as.numeric(data_dpt$dep)
-
-View(data_dpt)
+pauv <- read_excel("Data/C07-ISD_Pauvrete_Monetaire.xls", skip = 5)
+colnames(pauv) [1] <- "dep"
+colnames(pauv) [3] <- "pauvreté"
+pauv <- pauv %>% 
+  filter(dep<96) %>% 
+  filter(!is.na(pauvreté)) %>% 
+  dplyr::select("dep", "pauvreté")
 ```
 
-We create datasets for each Regression modelling that will be performed:
+Merge of indexes into master data frame
 
 ```{r}
-data_dpt_chom <- data_dpt %>% 
-  dplyr::select(-X, -dep, -Pauvreté, -Niveau_de_vie)
+indicateurs <- pauv %>% 
+  full_join(niv, by = "dep")
 
-data_dpt_ndv <- data_dpt %>% 
-  dplyr::select(-X, -dep, -Pauvreté, -Chômage)
+indicateurs$pauvreté <- as.numeric(indicateurs$pauvreté)
+indicateurs$Niveau_de_vie <- as.numeric(indicateurs$Niveau_de_vie)
 
-data_dpt_pov <- data_dpt %>% 
-  dplyr::select(-X, -dep, -Chômage, -Niveau_de_vie)
+View(indicateurs)
 ```
 
-Let's perform regression modelling to identify the most useful variables to predict the various indexes:
+Function - Prediction
 
 ```{r}
-# Chômage
-pred_chomage <- lm(Chômage~., data = data_dpt_chom)
-pred_chomage_step <- step(pred_chomage, direction = "both")
-
-pred_chomage_opt <- lm(formula(pred_chomage_step), data = data_dpt_chom)
-summary(pred_chomage_opt)
+equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
+  index <- enquo(index)
+  data_index <-  eq %>% 
+    dplyr::select(-c(1,2))
+  col <- ind %>% 
+    dplyr::select(column_name = !!index)
+  data_index <- add_column(data_index, indicator = col$column_name)
+  pred_index <- lm(indicator~., data = data_index)
+  pred_index_step <- step(pred_index, direction="both")
+  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+  eq_significant <- pred_index_opt$coefficients
+  eq_significant <- eq_significant[-1]
+  return(eq_significant)
+}
 ```
-
-```{r}
-# Niveau de vie
-pred_ndv <- lm(Niveau_de_vie ~., data = data_dpt_ndv)
-pred_ndv_step <- step(pred_ndv, direction = "both")
-
-pred_ndv_opt <- lm(formula(pred_ndv_step), data = data_dpt_ndv)
-summary(pred_ndv_opt)
-```
-
-```{r}
-# Pauvreté
-pred_pov <- lm(Pauvreté ~., data = data_dpt_pov)
-pred_pov_step <- step(pred_pov, direction = "both")
-
-pred_pov_opt <- lm(formula(pred_pov_step), data = data_dpt_pov)
-summary(pred_pov_opt)
-```
-
