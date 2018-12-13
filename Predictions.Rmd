@@ -23,26 +23,90 @@ data_dpt <- read.csv("Data/Equipment1.csv")
 
 Import useful Departmental indexes from INSEE to cross check with our data:
 
-```{r}
+[OUTDATED]
+#```{r}
+# Chômage Index
 chomage <- read_excel("Data/data_chomage.xlsx", skip =3) %>% 
   filter(!Code %in% c("971", "972", "973", "974", "976")) %>% 
   dplyr::select(-"Libellé")
 colnames(chomage) [1] <- "dep"
 View(chomage)
+#```
 
+[OUTDATED]
+#```{r}
+# Poverty Index
 pauvreté <- read_excel("Data/data_pauvreté.xls", sheet = 2, skip=3)
 colnames(pauvreté) [1] <- "dep"
 colnames(pauvreté) [3] <- "Médiane du niveau de vie (euros)"
 colnames(pauvreté) [5] <- "Taux de pauvreté (%)"
 colnames(pauvreté) [4] <- "Delete1"
 colnames(pauvreté) [6] <- "Delete2"
-pauvreté <- pauvreté %>% 
-  dplyr::select(-"Delete1", -"Delete2", -"Nom")
-```
 
-Merge indexes into Department Equipment dataframe to perform analyses:
+pauvreté <- pauvreté %>% 
+  dplyr::select(-"Delete1", -"Delete2", -"Nom") %>% 
+  dplyr::filter(as.numeric(dep)<96)
+View(pauvreté)
+#```
 
 ```{r}
+# Niveau de vie
+niv <- read_excel("Data/C09-ISD_Niveau_De_Vie_Des_Menages.xls", skip = 5)
+colnames(niv) [1] <- "dep"
+colnames(niv) [2] <- "delete"
+colnames(niv) [3] <- "Niveau_de_vie"
+niv <- niv %>% 
+  filter(dep<96) %>% 
+  dplyr::select(-"delete")
+
+# Poverty Index
+pauv <- read_excel("Data/C07-ISD_Pauvrete_Monetaire.xls", skip = 5)
+colnames(pauv) [1] <- "dep"
+colnames(pauv) [3] <- "pauvreté"
+pauv <- pauv %>% 
+  filter(dep<96) %>% 
+  filter(!is.na(pauvreté)) %>% 
+  dplyr::select("dep", "pauvreté")
+```
+
+
+Index dataframe & Equipment dataframe
+
+```{r}
+indicateurs <- pauv %>% 
+  full_join(niv, by = "dep")
+
+indicateurs$pauvreté <- as.numeric(indicateurs$pauvreté)
+indicateurs$Niveau_de_vie <- as.numeric(indicateurs$Niveau_de_vie)
+
+View(indicateurs)
+```
+
+Function
+
+```{r}
+equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
+  index <- enquo(index)
+  data_index <-  eq %>% 
+    dplyr::select(-c(1,2))
+  col <- ind %>% 
+    dplyr::select(column_name = !!index)
+  data_index <- add_column(data_index, indicator = col$column_name)
+  pred_index <- lm(indicator~., data = data_index)
+  pred_index_step <- step(pred_index, direction="both")
+  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+  eq_significant <- pred_index_opt$coefficients
+  eq_significant <- eq_significant[-1]
+  return(eq_significant)
+}
+```
+
+```{r}
+```
+
+[OUTDATED] Merge indexes into Department Equipment dataframe to perform analyses:
+
+#```{r}
 data_dpt <- data_dpt %>% 
   left_join(chomage, by = "dep")
 data_dpt <- data_dpt %>% 
@@ -55,11 +119,11 @@ data_dpt$Chômage <- as.numeric(data_dpt$Chômage)
 data_dpt$dep <- as.numeric(data_dpt$dep)
 
 View(data_dpt)
-```
+#```
 
 We create datasets for each Regression modelling that will be performed:
 
-```{r}
+#```{r}
 data_dpt_chom <- data_dpt %>% 
   dplyr::select(-X, -dep, -Pauvreté, -Niveau_de_vie)
 
@@ -68,34 +132,101 @@ data_dpt_ndv <- data_dpt %>%
 
 data_dpt_pov <- data_dpt %>% 
   dplyr::select(-X, -dep, -Chômage, -Niveau_de_vie)
-```
+#```
 
 Let's perform regression modelling to identify the most useful variables to predict the various indexes:
 
-```{r}
+#```{r}
 # Chômage
 pred_chomage <- lm(Chômage~., data = data_dpt_chom)
 pred_chomage_step <- step(pred_chomage, direction = "both")
 
 pred_chomage_opt <- lm(formula(pred_chomage_step), data = data_dpt_chom)
 summary(pred_chomage_opt)
-```
+#```
 
-```{r}
+#```{r}
 # Niveau de vie
 pred_ndv <- lm(Niveau_de_vie ~., data = data_dpt_ndv)
 pred_ndv_step <- step(pred_ndv, direction = "both")
 
 pred_ndv_opt <- lm(formula(pred_ndv_step), data = data_dpt_ndv)
 summary(pred_ndv_opt)
-```
+#```
 
-```{r}
+#```{r}
 # Pauvreté
 pred_pov <- lm(Pauvreté ~., data = data_dpt_pov)
 pred_pov_step <- step(pred_pov, direction = "both")
 
 pred_pov_opt <- lm(formula(pred_pov_step), data = data_dpt_pov)
 summary(pred_pov_opt)
-```
+test <- pred_pov_opt$coefficients
+View(test)
+#```
 
+Function
+
+#```{r}
+equipment_data_creator <- function(index){
+  index <- enquo(index)
+  data_index <- data_dpt %>% 
+    dplyr::select("Gendarmerie", "Cour.d.appel", "Tribunal.de.grande.instance..TGI.", "Tribunal.d.instance", "Conseil.de.prud.hommes", "Tribunal.de.commerce", "Bureau.de.poste", "Agence.postale.communale.", "Taxi", "Aeroport", "Gare.avec.desserte.train.a.grande.vitesse..TAGV.","Gare.sans.desserte.train.a.grande.vitesse..TAGV.", "Etablissement.sante.court.sejour","Etablissement.sante.moyen.sejour","Etablissement.sante.long.sejour","Etablissement.psychiatrique.avec.hebergement", "Urgences","Maternite","Structures.psychiatriques.en.ambulatoire", !!index)
+  return(data_index)
+}
+
+stepwise_selection <- function(index){
+  index <- enquo(index)
+  pred_index <- lm(!index~., data = data_index)
+  pred_index_step <- step(pred_index, direction="both")
+  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+  eq_significant <- t(pred_index_opt$coefficients[-1,1])
+  return(eq_significant)
+}
+
+find_equipment = function(indic, eq = tot, ind = indicateurs){
+  indic <- enquo(indic)
+  new_dataset <- eq %>% dplyr::select(-c(1,2))
+  col <- ind %>% 
+    dplyr::select(column_name = !!indic)
+  new_dataset <- add_column(new_dataset, indicator = col$column_name)
+  return(new_dataset)
+}
+
+# Check tot et ind
+
+equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
+  index <- enquo(index)
+  data_index <-  eq %>% 
+    dplyr::select(-c(1,2))
+  col <- ind %>% 
+    dplyr::select(column_name = !!indic)
+  data_index <- add_column(data_index, indicator = col$column_name)
+  pred_index <- lm(name~., data = data_index)
+  pred_index_step <- step(pred_index, direction="both")
+  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+  eq_significant <- pred_index_opt$coefficients
+  eq_significant <- as.data.frame(eq_significant)
+  equipment_names <- rownames(eq_significant)
+  equipment_names <- equipment_names[-1]
+  return(equipment_names)
+}
+
+equipment_stepwise(Chômage)
+
+testfun <- function(index){
+    index <- enquo(index)
+    data_index <- data_dpt %>% 
+    dplyr::select("Gendarmerie", "Cour.d.appel", "Tribunal.de.grande.instance..TGI.", "Tribunal.d.instance", "Conseil.de.prud.hommes", "Tribunal.de.commerce", "Bureau.de.poste", "Agence.postale.communale.", "Taxi", "Aeroport", "Gare.avec.desserte.train.a.grande.vitesse..TAGV.","Gare.sans.desserte.train.a.grande.vitesse..TAGV.", "Etablissement.sante.court.sejour","Etablissement.sante.moyen.sejour","Etablissement.sante.long.sejour","Etablissement.psychiatrique.avec.hebergement", "Urgences","Maternite","Structures.psychiatriques.en.ambulatoire", name=!!index)
+  pred_index <- lm(name~., data = data_index)
+  pred_index_step <- step(pred_index, direction="both")
+  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+  eq_significant <- pred_index_opt$coefficients
+  eq_significant <- as.data.frame(eq_significant)
+  equipment_names <- rownames(eq_significant)
+  equipment_names <- equipment_names[-1]
+  return(equipment_names)
+}
+
+testfun(Chômage)
+#```
