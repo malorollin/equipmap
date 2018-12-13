@@ -47,6 +47,14 @@ pauv <- pauv %>%
   dplyr::select("dep", "pauvreté")
 ```
 
+Criminalité
+
+```{r}
+crime <- read.csv("Data/crime_rate_dep.csv")
+crime <- crime %>% 
+  dplyr::select(-"X")
+```
+
 Merge of indexes into master data frame
 
 ```{r}
@@ -56,7 +64,7 @@ indicateurs <- pauv %>%
 indicateurs$pauvreté <- as.numeric(indicateurs$pauvreté)
 indicateurs$Niveau_de_vie <- as.numeric(indicateurs$Niveau_de_vie)
 
-View(indicateurs)
+indicateurs <- indicateurs %>% full_join(crime, by = "dep")
 ```
 
 Function - Prediction
@@ -70,10 +78,12 @@ equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
     dplyr::select(column_name = !!index)
   data_index <- add_column(data_index, indicator = col$column_name)
   pred_index <- lm(indicator~., data = data_index)
-  pred_index_step <- step(pred_index, direction="both")
+  invisible(capture.output(pred_index_step <- step(pred_index, direction="both")))
   pred_index_opt <- lm(formula(pred_index_step), data = data_index)
   eq_significant <- pred_index_opt$coefficients
   eq_significant <- eq_significant[-1]
   return(eq_significant)
 }
+
+equipment_stepwise(pauvreté)
 ```
