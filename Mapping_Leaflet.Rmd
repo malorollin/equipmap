@@ -163,5 +163,114 @@ View(equipment)
 names(equipment)
 ```
 
+```{r}
+pauvrete <- read_excel("Data/niveau_vie_dep.xlsx")
+summary(pauvrete)
+```
+
+```{r}
+library(FactoMineR)
+```
+
+```{r}
+niveau_vie <- pauvrete %>% 
+  select(niveau_de_vie_median)
+niveau_vie
+
+
+df_travail <- equipment %>% 
+  mutate(niv_vie = niveau_vie$niveau_de_vie_median)
+df_travail
+
+df_travail <- df_travail %>% 
+  select(dep, Etablissement.sante.court.sejour, Etablissement.sante.moyen.sejour, Etablissement.sante.long.sejour)
+
+```
+
+```{r}
+res.pca <- PCA(df_travail, scale.unit = TRUE, quali.sup = 1)
+```
+
+```{r}
+library(stringr)
+```
+
+
+```{r}
+dep_depense <- read_excel("Data/cgd_2017 (3).xlsx", 
+    sheet = "T01")
+
+dep_depense <- dep_depense[-c(1:5),]
+dep_depense <- dep_depense[-c(97:106),]
+
+dep_depense <- dep_depense[, c(1,2)]
+names(dep_depense) <- c("departement", "depense")
+
+dep_depense <- dep_depense %>% 
+  mutate(code_insee = substring(departement, 1, 2)) %>% 
+  mutate(nom = str_sub(departement, 4))
+
+dep_depense <- dep_depense[, c(3, 4, 2)]
+
+View(dep_depense)
+
+
+```
+
+```{r}
+df_travail2 <- df_travail %>% 
+  mutate(depense = as.numeric(dep_depense$depense))
+df_travail2
+
+res.pca <- PCA(df_travail2, scale.unit = TRUE, quali.sup = 2, quanti.sup = c(1, 3:19, 21, 23))
+
+```
+
+
+```{r}
+dep_education <- read.csv("Data/dep_education.csv")
+```
+
+
+```{r}
+dep_edu <- read.csv("Data/dep_edu.csv")
+
+df_edu <- equipment
+
+categories_edu <- dep_edu %>%
+  distinct(nature_uai_libe)
+categories_edu
+
+ajout_edu = function(df, catego){
+  
+}
+
+df_edu <- dep_edu %>%
+  mutate(college = (dep_edu %>% 
+                      group_by(dpt) %>% 
+                      filter(nature_uai_libe == "Collège") %>% 
+                      summarise(college_tot = n()) %>% 
+                      select(college_tot)))
+
+
+education_par_dep <- dep_edu %>% 
+  group_by(dpt) %>%
+  filter(nature_uai_libe == "Collège") %>% 
+  summarise(college = n())
+
+education_par_dep <- education_par_dep %>% 
+  mutate( dep_edu)
+
+prendre_colonne = function(df, nom){
+  nom <- enquo(nom)
+  return(df %>% 
+           group_by(df$dpt) %>%
+           filter(df$nature_uai_libe == !!name) %>% 
+           summarise(!!name = n()))
+  }
+
+
+```
+
 
 
