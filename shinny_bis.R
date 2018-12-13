@@ -27,3 +27,12 @@ get_map <- function(eq, data=tot){
   return(res)
 }
 
+niv<- read_excel("pred/C09-ISD_Niveau_De_Vie_Des_Menages.xls")
+niveau <- niv[-c(1:5,102:110),]
+niveau<- niveau %>% select(c(1,3)) %>% rename(niveau = X__2, dep =1 ) %>% mutate(niveau=as.numeric(niveau)) %>% arrange(dep)
+
+pauv<- read_excel("pred/C07-ISD_Pauvrete_Monetaire.xls")
+pauvrete <- pauv[-c(1:5,102:110),]
+pauvrete<- pauvrete %>% select(c(1,3)) %>% rename(pauvrete = X__2, dep =1 ) %>% mutate(pauvrete=as.numeric(pauvrete)) %>% arrange(dep)
+
+new <- cbind(tot,pauvrete %>% select(pauvrete),niveau %>% select(niveau))
