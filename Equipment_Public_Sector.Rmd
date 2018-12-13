@@ -21,7 +21,6 @@ library(readxl)
 
 ```{r}
 demographics <- read_excel(path ="Data/base-ic-evol-struct-pop-2013.xlsx", sheet = 1, skip = 5)
-View(demographics)
 ```
 
 We need to work with certain totals of the population per department and per age group
@@ -38,8 +37,6 @@ For our study, we will focus on Metropolitan France
 ```{r}
 demographics_by_dep <- demographics_by_dep %>% 
   filter(DEP<=95)
-
-View(demographics_by_dep)
 ```
 
 #Equipment Data#
@@ -82,8 +79,6 @@ not_metro <- c("971", "972", "973", "974")
 equip_dep_SP <- equip_dep_SP %>% 
   filter(typequ %in% public_var) %>% 
   filter(!as.character(dep) %in% not_metro)
-
-View(equip_dep_SP)
 ```
 
 # Cross the datasets #
@@ -93,16 +88,13 @@ We have the population per department and the number of equipment types per depa
 
 ```{r}
 PS_and_pop_data <- merge(equip_dep_SP, demographics_by_dep[,1:2], by.y = "DEP", by.x = "dep")
-head(PS_and_pop_data)
 
 PS_per_inhabitant <- PS_and_pop_data  %>% 
   mutate("2012" = PS_and_pop_data$nb_2012 / PS_and_pop_data$P13_POP_sum_pop) %>%
   mutate("2017" = PS_and_pop_data$nb_2017 / PS_and_pop_data$P13_POP_sum_pop)
-View(PS_per_inhabitant)
 
 PS_per_capita <- PS_per_inhabitant %>%
   gather(key = year, value = per_inhabitant, -c(1:5))
-View(PS_per_capita)
 ```
 
 We now have a long dataset that displays each row as an observation of a specific equipment (A104, A105, etc.) in a department (01:95), at a specific year (2012 or 2017), and its associated proportion of equipment per inhabitant of that department for a given year. 
