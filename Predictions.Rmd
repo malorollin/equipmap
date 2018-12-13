@@ -40,11 +40,11 @@ Pauvreté
 ```{r}
 pauv <- read_excel("Data/C07-ISD_Pauvrete_Monetaire.xls", skip = 5)
 colnames(pauv) [1] <- "dep"
-colnames(pauv) [3] <- "pauvreté"
+colnames(pauv) [3] <- "pauvrete"
 pauv <- pauv %>% 
   filter(dep<96) %>% 
-  filter(!is.na(pauvreté)) %>% 
-  dplyr::select("dep", "pauvreté")
+  filter(!is.na(pauvrete)) %>% 
+  dplyr::select("dep", "pauvrete")
 ```
 
 Criminalité
@@ -61,7 +61,7 @@ Merge of indexes into master data frame
 indicateurs <- pauv %>% 
   full_join(niv, by = "dep")
 
-indicateurs$pauvreté <- as.numeric(indicateurs$pauvreté)
+indicateurs$pauvrete <- as.numeric(indicateurs$pauvrete)
 indicateurs$Niveau_de_vie <- as.numeric(indicateurs$Niveau_de_vie)
 
 indicateurs <- indicateurs %>% full_join(crime, by = "dep")
@@ -84,6 +84,4 @@ equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
   eq_significant <- eq_significant[-1]
   return(eq_significant)
 }
-
-equipment_stepwise(pauvreté)
 ```
