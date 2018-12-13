@@ -228,49 +228,130 @@ res.pca <- PCA(df_travail2, scale.unit = TRUE, quali.sup = 2, quanti.sup = c(1, 
 
 
 ```{r}
-dep_education <- read.csv("Data/dep_education.csv")
+#dep_education <- read.csv("Data/dep_education.csv")
+```
+
+```{r}
+# categories_edu <- dep_edu %>%
+#   distinct(nature_uai_libe)
+# categories_edu
+```
+
+
+
+```{r}
+# dep_edu <- read.csv("Data/dep_edu.csv")
+# 
+# df_edu <- equipment
+# 
+# 
+# education_par_dep <- dep_edu %>% 
+#   group_by(dpt) %>%
+#   filter(nature_uai_libe == "Collège") %>% 
+#   summarise(college = n())
+
+
+```
+
+```{r}
+# lycee_pro <- dep_edu %>%
+#   group_by(dpt) %>% 
+#   filter(nature_uai_libe == "Lycée polyvalent") %>% 
+#   summarise(colonne = n())
+# 
+#merge(lycee_pro, education_par_dep)
+```
+
+#Education 
+
+
+```{r}
+edudep <- read_excel("Data/TCRD_061.xlsx")
+View(edudep)
+```
+
+```{r}
+edudep <- edudep[c(5:100),]
+edudep <- edudep[,-6]
+```
+
+```{r}
+
+edudep <- edudep %>% 
+  mutate(college = as.numeric(X__2)+as.numeric(X__6)) %>% 
+  mutate(lycee_professionnel = as.numeric(X__3)+as.numeric(X__7)) %>% 
+  mutate(lycee_general_techno = as.numeric(X__4)+ as.numeric(X__8)) %>% 
+  mutate(total_edu = as.numeric(X__9))
+
+edudep <- edudep[, -c(3:9)]
+
+names(edudep) <- c("code_insee", "nom", "college", "lycee_professionnel", "lycee_general_techno", "total")
+
 ```
 
 
 ```{r}
-dep_edu <- read.csv("Data/dep_edu.csv")
+write.csv(edudep, "education_per_department.csv")
+```
 
-df_edu <- equipment
 
-categories_edu <- dep_edu %>%
-  distinct(nature_uai_libe)
-categories_edu
+#On écrit les fonctions
 
-ajout_edu = function(df, catego){
-  
+```{r}
+tot <- equipment
+indicateurs <- edudep
+
+
+find_equipment = function(indic, eq = tot, ind = indicateurs){
+  indic <- enquo(indic)
+  new_dataset <- eq %>% dplyr::select(-c(1,2))
+  col <- ind %>% 
+    dplyr::select(column_name = !!indic)
+  new_dataset <- add_column(new_dataset, indicator = col$column_name)
+  return(new_dataset)
 }
 
-df_edu <- dep_edu %>%
-  mutate(college = (dep_edu %>% 
-                      group_by(dpt) %>% 
-                      filter(nature_uai_libe == "Collège") %>% 
-                      summarise(college_tot = n()) %>% 
-                      select(college_tot)))
-
-
-education_par_dep <- dep_edu %>% 
-  group_by(dpt) %>%
-  filter(nature_uai_libe == "Collège") %>% 
-  summarise(college = n())
-
-education_par_dep <- education_par_dep %>% 
-  mutate( dep_edu)
-
-prendre_colonne = function(df, nom){
-  nom <- enquo(nom)
-  return(df %>% 
-           group_by(df$dpt) %>%
-           filter(df$nature_uai_libe == !!name) %>% 
-           summarise(!!name = n()))
-  }
+find_equipment(college)
 
 
 ```
+
+#Création du df indicateurs et complétion du df equipment
+
+
+```{r}
+equipment
+```
+
+```{r}
+demographics <- read_excel(path ="Data/base-ic-evol-struct-pop-2013.xlsx", sheet = 1, skip = 5)
+View(demographics)
+
+demographics_by_dep <- demographics %>% 
+  group_by(DEP) %>% 
+  select_if(is.numeric) %>% 
+  summarise_all(funs(sum_pop = sum))
+
+demographics_by_dep <- demographics_by_dep %>% 
+  filter(DEP<=95) %>% 
+  select(code_insee = DEP, population = P13_POP_sum_pop)
+
+View(demographics_by_dep)
+demographics_by_dep
+```
+
+```{r}
+edudep
+
+edu_par_hab <- merge(edudep, demographics_by_dep,by = "code_insee")
+edu_par_hab
+
+edu_par_hab <- edu_par_hab %>% 
+  mutate(college = college/population)
+
+```
+
+
 
 
 
