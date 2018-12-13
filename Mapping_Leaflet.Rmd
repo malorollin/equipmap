@@ -347,11 +347,41 @@ edu_par_hab <- merge(edudep, demographics_by_dep,by = "code_insee")
 edu_par_hab
 
 edu_par_hab <- edu_par_hab %>% 
-  mutate(college = college/population)
+  mutate(college = college/population) %>% 
+  mutate(lycee_professionnel = lycee_professionnel/population) %>% 
+  mutate(lycee_general_techno = lycee_general_techno/population) %>% 
+  mutate(total_education = total/population)
+
+edu_par_hab <- edu_par_hab %>%
+  select(dep = code_insee, college, lycee_professionnel, lycee_general_techno, total_education)
+  
+```
+
+```{r}
+equipment <- merge(equipment, edu_par_hab, by = "dep")
+equipment  
 
 ```
 
+```{r}
+equip_dep <- read.dbf(file = "Data/bpe1217_nbequip_dep.dbf")
+equip_dep
+```
 
+```{r}
+#equip_loisir <- equip_dep %>% 
+  
+```
+
+
+
+
+
+#Construction criminalité
+
+```{r}
+
+```
 
 
 
