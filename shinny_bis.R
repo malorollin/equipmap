@@ -1,35 +1,25 @@
-#lancer ce fichier avant le shinny_local.R pour charger toutes les données nécessaires 
-#(il faut auparavant lancer chacun de vos 3 Rmd pour charger les dataframe que je renome ici)
+library(leaflet)
+library(maps)
+library(rgdal)
+library(sp)
+library(tidyverse)
 
+tot <- read.csv("equipment.csv")
 
-#ici on charge les départements : pour ccela il faut avoir à la racinde du projet les fichiers nécessaire (demander à gabiche)
 departments_shp <- readOGR( dsn=getwd(), layer = "departements-20140306-100m")
 departments_shp <- departments_shp[!departments_shp$code_insee %in%c("971", "972", "973", "974", "975", "976", "69M"),]
 departments_shp <- departments_shp[order(departments_shp$code_insee),]
 
-#je renomme proprement les 3 df
-data_ed <- PS_per_capita #cf owen Equipment_Public_secor.rmd
-data_health <- health_per_inhabitant_and_year %>% rename(per_inhabitant = per_person)#cf jo Filtre_sante
-data_tp <- transport_per_inhabitant_and_year #cf vic Victoire.rmd
+equipment_category <- c("Divers","Divers","Divers","Divers","Divers","Divers","Divers","Divers","Transport","Transport","Transport","Transport","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare")
+eq_per_category <- data.frame(eq = names(tot)[-c(1,2)], cat = equipment_category)
 
-
-#comme j'avais pas les catégories associées à chaque équipement je fabrique un df temporaire avec les code et catégories que j'utilise dans le shiny
-#je ferai la modif rapide très vite et ça changera pas grand chose
-equi_ed <- equipment_name[c(1:8),]
-equi_ed <- equi_ed %>% mutate (category = "Education")
-equi_tp <- data.frame(typequ = transport_per_inhabitant_and_year %>% distinct(typequ), name="name",category="Transport")
-equi_health <- data.frame(typequ = health_per_inhabitant_and_year %>% distinct(typequ), name="name",category="Healthcare")
-
-equi_total <- rbind(equi_ed,equi_health,equi_tp)
-
-#charger la fonction en dehors du shiny (peut etre pas utile)
-get_map <- function(data, Year, eq){
-  dist <- data %>% dplyr::filter(year==Year,typequ == eq) %>% pull(per_inhabitant)
+get_map <- function(eq, data=tot){
+  dist <- data %>% pull(eq)
   bins <- quantile(dist, probs =c(0:6)/6)
   bins <- bins[!duplicated(bins)]
   pal <- colorBin("YlOrRd", domain = dist, bins = bins)
   
-  res <- leaflet(data = departments_shp) %>% 
+  res <- leaflet(departments_shp) %>% 
     addTiles() %>% 
     setView(lat = 48.5, lng = 2.5, zoom = 5) %>% 
     addPolygons(data= departments_shp, fillColor = ~pal(dist),   weight = 1, opacity = 0.5,   color = "white", dashArray = "3", fillOpacity = 0.7,
@@ -37,3 +27,12 @@ get_map <- function(data, Year, eq){
   return(res)
 }
 
+niv<- read_excel("pred/C09-ISD_Niveau_De_Vie_Des_Menages.xls")
+niveau <- niv[-c(1:5,102:110),]
+niveau<- niveau %>% select(c(1,3)) %>% rename(niveau = X__2, dep =1 ) %>% mutate(niveau=as.numeric(niveau)) %>% arrange(dep)
+
+pauv<- read_excel("pred/C07-ISD_Pauvrete_Monetaire.xls")
+pauvrete <- pauv[-c(1:5,102:110),]
+pauvrete<- pauvrete %>% select(c(1,3)) %>% rename(pauvrete = X__2, dep =1 ) %>% mutate(pauvrete=as.numeric(pauvrete)) %>% arrange(dep)
+
+new <- cbind(tot,pauvrete %>% select(pauvrete),niveau %>% select(niveau))

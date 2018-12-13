@@ -17,6 +17,7 @@ library(maps)
 library(rgdal)
 library(sp)
 library(tidyverse)
+library(readr)
 ```
 
 ```{r}
@@ -141,5 +142,26 @@ points_72@data %>%
   group_by(points_72$type) %>% 
   summarise(tot = n())
 ```
+
+
+
+
+
+Ok on commence le boulot d'écrire des fonctions et de faire de la prédiction
+
+```{r}
+equipment <- read.csv("Data/equipment.csv")
+
+```
+
+
+```{r}
+dim(equipment)
+summary(equipment)
+head(equipment)
+View(equipment)
+names(equipment)
+```
+
 
 

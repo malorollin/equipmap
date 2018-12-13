@@ -1,23 +1,10 @@
-```{r}
-data_ed <- PS_per_capita 
-data_health <- health_per_inhabitant_and_year %>% rename(per_inhabitant = per_person) %>% rename(dep=DEP)
-data_tp <- transport_per_inhabitant_and_year 
 
-equi_total_bis <- cbind(equipment_name, category=c("Education","Education","Education","Education","Education","Education","Education","Education","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Healthcare","Transport","Transport","Transport","Transport"))
+```{r}
+library(readr)
 ```
 
-
-
 ```{r}
-ed <- data_ed %>% select(dep,typequ,year,per_inhabitant) %>% spread_multiple(c(year,typequ),per_inhabitant)#tableau 96dep x (8typeqx2ans) 
-ed_bis <- data_ed %>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans + somme) 
-tp_bis <- data_tp%>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans + somme) 
-health_bis <- data_health %>% filter(year==2012) %>% select(dep, typequ,per_inhabitant) %>% spread(typequ,per_inhabitant)#tableau 96dep x (8typeqx1ans +somme) 
-```
-
-
-```{r}
-tot <- cbind(ed_bis, tp_bis %>% select(-1),health_bis%>% select(-1))
+tot <- read.csv("equipment.csv")
 tot
 ```
 
