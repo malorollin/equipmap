@@ -14,8 +14,8 @@ ui <-navbarPage("Menu",
                       sidebarPanel(
                         #radioButtons("Year",label = "Year", choices = c("2012", "2017")),
                         #par d??faut, liste de tous les ??quipements de toutes les cat??gories
-                        selectInput("category",label = "category :" ,choices = c("Healthcare", "Transport", "Divers"),selected = NULL),
-                        selectInput( "Equipement_name",label = "Equipement :" ,choices = names(tot)[-c(1, 2)],selected = NULL),
+                        selectInput("category",label = "category :" ,choices = eq_per_category$cat,selected = NULL),
+                        selectInput( "Equipement_name",label = "Equipement :" ,choices = names(data_dpt)[-c(1, 2)],selected = NULL),
                         actionButton("Print", "Go")
                       ),
                       mainPanel(
@@ -44,7 +44,7 @@ ui <-navbarPage("Menu",
                         #radioButtons("Year",label = "Year", choices = c("2012", "2017")),
                         #par d??faut, liste de tous les ??quipements de toutes les cat??gories
                         selectInput("prediction",label = "prediction :" ,choices = c("pauvrete", "Niveau_de_vie","crime_rate"),selected = NULL),
-                        checkboxGroupInput( "predictors",label = "predictors :" ,choices = names(tot)[-c(1, 2)],selected = names(tot)[-c(1, 2)]),
+                        checkboxGroupInput( "predictors",label = "predictors :" ,choices = names(data_dpt)[-c(1, 2)],selected = names(data_dpt)[-c(1, 2)]),
                         actionButton("Print2", "Go")
                       ),
                       mainPanel(
@@ -117,7 +117,7 @@ server <- function(input, output, session) {
     return(res)
     }
   
-  equipment_stepwise <- function(index, eq = tot, ind = indicateurs){
+  equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
     index <- enquo(index)
     data_index <-  eq %>% 
       dplyr::select(-c(1,2))
