@@ -40,11 +40,19 @@ Pauvreté
 ```{r}
 pauv <- read_excel("Data/C07-ISD_Pauvrete_Monetaire.xls", skip = 5)
 colnames(pauv) [1] <- "dep"
-colnames(pauv) [3] <- "pauvreté"
+colnames(pauv) [3] <- "pauvrete"
 pauv <- pauv %>% 
   filter(dep<96) %>% 
-  filter(!is.na(pauvreté)) %>% 
-  dplyr::select("dep", "pauvreté")
+  filter(!is.na(pauvrete)) %>% 
+  dplyr::select("dep", "pauvrete")
+```
+
+Criminalité
+
+```{r}
+crime <- read.csv("Data/crime_rate_dep.csv")
+crime <- crime %>% 
+  dplyr::select(-"X")
 ```
 
 Merge of indexes into master data frame
@@ -53,27 +61,29 @@ Merge of indexes into master data frame
 indicateurs <- pauv %>% 
   full_join(niv, by = "dep")
 
-indicateurs$pauvreté <- as.numeric(indicateurs$pauvreté)
+indicateurs$pauvrete <- as.numeric(indicateurs$pauvrete)
 indicateurs$Niveau_de_vie <- as.numeric(indicateurs$Niveau_de_vie)
 
-View(indicateurs)
+indicateurs <- indicateurs %>% full_join(crime, by = "dep")
 ```
 
 Function - Prediction
 
 ```{r}
-equipment_stepwise <- function(index, eq = data_dpt, ind = indicateurs){
-  index <- enquo(index)
-  data_index <-  eq %>% 
-    dplyr::select(-c(1,2))
-  col <- ind %>% 
-    dplyr::select(column_name = !!index)
-  data_index <- add_column(data_index, indicator = col$column_name)
-  pred_index <- lm(indicator~., data = data_index)
-  pred_index_step <- step(pred_index, direction="both")
-  pred_index_opt <- lm(formula(pred_index_step), data = data_index)
-  eq_significant <- pred_index_opt$coefficients
-  eq_significant <- eq_significant[-1]
-  return(eq_significant)
-}
+  equipment_stepwise <- function(index, eq = tot, ind = indicateurs){
+    index <- enquo(index)
+    data_index <-  eq %>% 
+      dplyr::select(-c(1,2))
+    col <- ind %>% dplyr::select(column_name = !!index)
+    data_index <- add_column(data_index, indicator = col$column_name)
+    pred_index <- lm(indicator~., data = data_index)
+    invisible(capture.output(pred_index_step <- step(pred_index, direction="both")))
+    pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+    eq_significant <- pred_index_opt$coefficients
+    eq_significant <- eq_significant[-1]
+    A <- as.data.frame(eq_significant)
+    res <- cbind(as.data.frame(row.names(A)),A)
+    res <- res %>% rename(equipment="row.names(A)",coef = "eq_significant")
+    return(res)
+  }
 ```
