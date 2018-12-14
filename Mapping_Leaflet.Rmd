@@ -369,19 +369,141 @@ equip_dep
 ```
 
 ```{r}
-#equip_loisir <- equip_dep %>% 
+equip_loisir <- equip_dep %>% 
+  filter(typequ %in% c("F101", "F102", "F103", "F104", "F107", "F108", "F109", "F110", "F117")) %>% 
+  select(dep, typequ, nombre = "nb_2012")
+
+equip_loisir
+
+
   
 ```
 
+```{r}
+eq_loisir <- merge(eq_loisir, equip_loisir %>% 
+        filter(typequ == "F117")%>%
+        select(dep, skate_park = nombre), 
+      by = "dep")
+eq_loisir
+
+eq_loisir <- eq_loisir[-c(97:100),]
+
+eq_loisir <- eq_loisir %>% 
+  select(code_insee=dep, everything())
+
+```
+
+```{r}
+eq_loisir_hab <- merge(eq_loisir, demographics_by_dep, by = "code_insee")
+
+eq_loisir_hab <- eq_loisir_hab %>% 
+  mutate(Natation = Natation /population) %>%
+  mutate(Boulodrome = Boulodrome/population) %>%
+  mutate(Tennis = Tennis/population) %>% 
+  mutate(eq_cyclisme = eq_cyclisme / population) %>% 
+  mutate(athletisme = athletisme / population) %>% 
+  mutate(terrain_golf = terrain_golf / population) %>% 
+  mutate(parcours_sportif = parcours_sportif / population) %>%
+  mutate(sports_de_glace = sports_de_glace / population) %>% 
+  mutate(skate_park = skate_park / population) %>% 
+  select(dep = code_insee, everything())
+  
+eq_loisir_hab
+
+equip_loisir <- equip_loisir %>% 
+  filter(!dep %in% c("971", "972", "973", "974"))
+
+equip_loisir_tot <- equip_loisir %>%
+  group_by(dep) %>%
+  summarise(total = sum(nombre))
+
+eq_loisir_hab <- merge(eq_loisir_hab, equip_loisir_tot, by ="dep")
+eq_loisir_hab <- eq_loisir_hab %>% 
+  mutate(total = total / population) %>% 
+  select(-"population")
+  
+eq_loisir_hab <- eq_loisir_hab %>% 
+  select(-loisir_total)
+
+eq_loisir_hab <- eq_loisir_hab %>% 
+  select(code_insee = dep, everything())
+eq_loisir_hab <- merge(eq_loisir_hab, demographics_by_dep, by = "code_insee")
+
+eq_loisir_hab <- eq_loisir_hab %>% 
+  select(dep = code_insee, everything())
+
+eq_loisir_hab <- merge(eq_loisir_hab, equip_loisir_tot, by = "dep")
+eq_loisir_hab <- eq_loisir_hab %>% 
+  mutate(total = total / population)
+
+eq_loisir_hab <- eq_loisir_hab %>% 
+  select(dep, total_loisir = total, everything())
+
+eq_loisir_hab <- eq_loisir_hab %>% 
+  select(-population)
+
+eq_loisir_hab
 
 
+
+```
+
+```{r}
+equipment <- merge(equipment, eq_loisir_hab, by = "dep")
+names(equipment)
+```
+
+```{r}
+names(equipment) <- c("dep", "Gendarmerie", "Cour_appel", "Tribunal_gd_instance", "Tribunal_instance", "Prudhommes", "Tribunal_commerce", "Bureau_poste", "Agence_postale_communale", "Taxi", "Aeroport", "Gare_TGV", "Gare_sans_TGV", "Sante_court_sejour", "Sante_moyen_sejour", "Sante_long_sejour", "Etablissement_psychiatrique", "Urgences", "Maternite", "Structure_psychiatrique_ambulatoire", "College", "Lycee_professionnel", "Lycee_general_techno", "Total_education", "Total_loisir", "Natation", "Boulodrome", "Tennis", "Cyclisme", "Athletisme", "Golf", "Parcours_sportif", "Sports_de_glace", "Skate_park")
+```
+
+```{r}
+
+equipment
+
+write.csv(equipment, "equipment_final.csv")
+
+```
 
 
 #Construction criminalité
 
 ```{r}
 
+crime
 ```
 
+```{r}
+crime <- read.csv("Data/criminalite_dep.csv")
+
+crime <- crime %>% 
+  group_by(dpt) %>% 
+  summarise(crime_rate = sum(nombre))
+
+crime <- crime[c(1:96),]
+crime
+
+crime <- crime %>% 
+  mutate(dpt = as.character(dpt)) %>% 
+  mutate(dpt = case_when(
+    nchar(dpt)==1 ~ paste0("0", dpt),
+    TRUE ~ paste0("", dpt)
+  ))
+
+crime <- crime %>% 
+  arrange(dpt) %>% 
+  select(code_insee = dpt, crime_rate)
+
+
+crime = merge(crime, demographics_by_dep, by = "code_insee")
+
+crime <- crime %>% 
+  mutate(crime_rate = crime_rate/population) %>% 
+  select(dep = code_insee, crime_rate)
+
+write.csv(crime, "crime_rate_dep.csv")
+
+
+```
 
 
