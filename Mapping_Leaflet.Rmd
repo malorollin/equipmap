@@ -576,3 +576,79 @@ data_dpt <- equipment
 write.csv(equipment, "equipment_final.csv")
 ```
 
+
+
+```{r}
+names(indicateurs) <- c("dep", "taux de pauvrete", "niveau de vie", "taux de criminalite")
+```
+
+```{r}
+indicateurs
+write.csv(indicateurs, "indicateurs_final.csv")
+```
+
+
+```{r}
+equipment <- read.csv("equipment_final.csv")
+names(equipment)
+equipment <- equipment[-1]
+```
+
+```{r}
+equipment <- read.csv()
+
+
+data_dpt
+```
+
+```{r}
+equipment <- data_dpt
+names(equipment)
+```
+
+```{r}
+names(equipment) <- c("dep", "Gendarmerie", "Court of appeal", "High court", "District court", "Labor court", "Commercial court", "Post office", "communal postal agency", "Taxi", "Airport", "High-speed train station", "regular train station", "Short-stay health facility", "Medium-stay health facility", "Long-stay health facility", "Mental hospital", "Emergency room", "Maternity unit", "Psychiatric day hospital", "Middle-school", "Vocational school", "General and technology high-school", "Total education", "Total leisure", "Swimming resort", "Tennis", "Cycling", "Athleticism", "Golf course", "Fitness trail", "Ice-skating resort", "Skate park")
+equipment
+```
+
+```{r}
+write.csv(equipment, "equipment_en.csv")
+```
+
+```{r}
+indicateurs
+names(indicateurs)
+```
+
+```{r}
+names(indicateurs)<- c("dep", "poverty rate", "median revenue", "crime rate")
+write.csv(indicateurs, "indicateurs_en.csv")
+
+
+data_indic <- read.csv("indicateurs_en.csv")
+data_indic
+
+data_eq <- read.csv("equipment_en.csv")
+data_eq <- data_eq[-1]
+data_eq
+```
+
+```{r}
+names(data_eq) <- c("dep", "Gendarmerie", "Court of appeal", "High court", "District court", "Labor court", "Commercial court", "Post office", "communal postal agency", "Taxi", "Airport", "High-speed train station", "regular train station", "Short-stay health facility", "Medium-stay health facility", "Long-stay health facility", "Mental hospital", "Emergency room", "Maternity unit", "Psychiatric day hospital", "Middle-school", "Vocational school", "General and technology high-school", "Total education", "Total leisure", "Swimming resort", "French bowl pitch", "Tennis", "Cycling", "Athleticism", "Golf course", "Fitness trail", "Ice-skating resort", "Skate park")
+
+write.csv(data_eq, "equipment_en.csv")
+
+```
+
+
+```{r}
+indicateurs
+```
+
+```{r}
+names(indicateurs) <- c("dep", "poverty rate", "median revenue", "crime rate")
+indicateurs
+
+write.csv(indicateurs, "Data/indicateurs_en.csv")
+```
+
