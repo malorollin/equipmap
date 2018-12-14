@@ -1,8 +1,8 @@
-library(lattice)
-library(DAAG)
+#library(lattice)
+#library(DAAG)
 library(shiny)
 library(leaflet)
-library(maps)
+#library(maps)
 library(dplyr)
 
 
@@ -23,12 +23,27 @@ ui <-navbarPage("Menu",
                       )
                     )
            ),
+           tabPanel("Advise",
+                    sidebarLayout(
+                      sidebarPanel(
+                        #radioButtons("Year",label = "Year", choices = c("2012", "2017")),
+                        #par d??faut, liste de tous les ??quipements de toutes les cat??gories
+                        selectInput("prediction_advise",label = "prediction :" ,choices = c("pauvrete", "Niveau_de_vie","crime_rate"),selected = NULL),
+                        #checkboxGroupInput( "predictors",label = "predictors :" ,choices = names(tot)[-c(1, 2)],selected = names(tot)[-c(1, 2)]),
+                        actionButton("Print3", "Go")
+                      ),
+                      mainPanel(
+                        dataTableOutput("myadvise"),
+                        leafletOutput("map_indic")
+                      )
+                    )
+           ),
            tabPanel("Prediction",
                     sidebarLayout(
                       sidebarPanel(
                         #radioButtons("Year",label = "Year", choices = c("2012", "2017")),
                         #par d??faut, liste de tous les ??quipements de toutes les cat??gories
-                        selectInput("prediction",label = "prediction :" ,choices = c("niveau", "pauvrete"),selected = NULL),
+                        selectInput("prediction",label = "prediction :" ,choices = c("pauvrete", "Niveau_de_vie","crime_rate"),selected = NULL),
                         checkboxGroupInput( "predictors",label = "predictors :" ,choices = names(tot)[-c(1, 2)],selected = names(tot)[-c(1, 2)]),
                         actionButton("Print2", "Go")
                       ),
@@ -48,7 +63,7 @@ server <- function(input, output, session) {
   library(tidyverse)
 
   #fonction poour obtenir la map d'un ??quupement donn??e, pour une ann??e
-  get_map <- function(eq, data = tot) {
+  get_map <- function(eq, data = data_dpt) {
     dist <- data %>% pull(eq)
     bins <- quantile(dist, probs = c(0:6) / 6)
     bins <- bins[!duplicated(bins)]
@@ -74,9 +89,9 @@ server <- function(input, output, session) {
   }
   
   predict <- function(variable,pred){
-    pred <- fitted(lm(as.formula(paste(variable," ~ ",paste(pred,collapse="+"))),new[,-c(1,2)]),x=TRUE,y=TRUE)
+    pred <- fitted(lm(as.formula(paste(variable," ~ ",paste(pred,collapse="+"))),cbind(data_dpt[,-c(1,2)],indicateurs)),x=TRUE,y=TRUE)
     pred <- as.data.frame(pred) %>% pull(pred)
-    dif <- abs(pred-new %>% pull(variable))/mean(new %>% pull(variable))
+    dif <- abs(pred-indicateurs %>% pull(variable))/mean(indicateurs %>% pull(variable))
     
     bins <-c(0,0.0125,0.025,0.0375,0.05,0.066,0.15,0.5,1)
     #bins <- as.vector(c(0:5,10000)*500)
@@ -97,10 +112,26 @@ server <- function(input, output, session) {
         fillOpacity = 0.7,
         highlight = highlightOptions(color = "red", bringToFront = TRUE),
         label =  ~ code_insee)%>% 
-      addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
+        addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
                    position = "bottomright")
     return(res)
-    #cv.lm(new[,-c(1,2)], form.lm = formula(niveau ~.), m=10, dots = FALSE, seed=29, plotit="Residual", printit=TRUE)cross validation -> better
+    }
+  
+  equipment_stepwise <- function(index, eq = tot, ind = indicateurs){
+    index <- enquo(index)
+    data_index <-  eq %>% 
+      dplyr::select(-c(1,2))
+    col <- ind %>% dplyr::select(column_name = !!index)
+    data_index <- add_column(data_index, indicator = col$column_name)
+    pred_index <- lm(indicator~., data = data_index)
+    invisible(capture.output(pred_index_step <- step(pred_index, direction="both")))
+    pred_index_opt <- lm(formula(pred_index_step), data = data_index)
+    eq_significant <- pred_index_opt$coefficients
+    eq_significant <- eq_significant[-1]
+    A <- as.data.frame(eq_significant)
+    res <- cbind(as.data.frame(row.names(A)),A)
+    res <- res %>% rename(equipment="row.names(A)",coef = "eq_significant")
+    return(res)
   }
   
   #mise ?? jour des propositions d'??quipements ?? afficher suivant l'onglet dans lequel on se trouve
@@ -129,6 +160,21 @@ server <- function(input, output, session) {
     })
   })
   
+  predictor_relevant <- reactive({
+    input$Print3
+    isolate({
+      equipment_stepwise(input$prediction_advise)
+      })
+  })
+  
+  map_indic <- reactive({
+    input$Print3
+    isolate({
+      #equipment_stepwise(input$prediction_advise)
+      get_map(eq=input$prediction_advise, data=indicateurs)
+    })
+  })
+  
   #les output correspondant aux 3 maps r??actives
   output$mymap <- renderLeaflet({
     map()
@@ -136,7 +182,14 @@ server <- function(input, output, session) {
   output$mypred <- renderLeaflet({
     map_pred()
   })
+  output$myadvise <- renderDataTable({
+    predictor_relevant()
+  })
+  output$map_indic <- renderLeaflet({
+    map_indic()
+  })
 }
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
