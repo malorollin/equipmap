@@ -8,7 +8,7 @@ library(dplyr)
 
 #l'application affiche un message d'erreur tant qu'on n'a pas appuy?? sur le bouton d'affichage : pas tr??s grave car ??a disparait (mais il faudra quand m??me le r??gler)
 
-ui <-navbarPage("Menu",
+ui <-fluidPage(navbarPage("Menu",
            tabPanel("Affichage",
                     sidebarLayout(
                       sidebarPanel(
@@ -56,6 +56,7 @@ ui <-navbarPage("Menu",
                       tabPanel("Table"),
                       tabPanel("About")
            )
+)
 )
 
 
