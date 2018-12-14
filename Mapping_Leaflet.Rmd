@@ -507,3 +507,72 @@ write.csv(crime, "crime_rate_dep.csv")
 ```
 
 
+
+```{r}
+#Fonction pour récupérer la moyenne et le chiffre pour un nom d'équipement et de département (donnée par le click)
+
+get_info = function(eq, code_insee, data = data_dpt){
+  eq <- enquo(eq)
+  res <- data %>% 
+    select(dep, equip = !!eq) %>% 
+    mutate(equip = as.numeric(equip))
+  med <- median(res%>% pull(equip))
+  result <- res %>%
+    filter(dep == code_insee) %>% 
+    pull(equip)
+  str <- paste0("Le ", code_insee, " a ",signif(result, 3), " ", eq, " par habitants, la médiane nationale étant de ", signif(med, 3))
+  str2 <- glue::glue('Le {code_insee} a {signif(result, 3)} {eq} par habitants, la médiane nationale étant de {signif(med, 3)}')
+  return(c(result, med))
+}
+
+
+indicateurs
+get_info(eq = crime_rate, code_insee = 60, data = indicateurs)
+
+
+# number <- get_info(niveau_vie, code_insee = 60)
+# code_insee <- 60
+# equip <- "Gendarmerie"
+# 
+# string <- glue::glue('Le {code_insee} a {signif(number[1], 3)} {equip} par habitant, la médiane nationale étant de {signif(number[2], 3)}')
+# string
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+equipment <- read.csv("Data/equipment_final.csv")
+```
+
+
+```{r}
+names(equipment)
+
+```
+
+```{r}
+names(equipment) <- c("X", "dep", "Gendarmerie", "Cour d'appel", "Tribunal de grande instance", "Tribunal d'instance", "Prudhommes", "Tribunal de commerce", "Bureau de poste", "Agence postale communale", "Taxi", "Aeroport", "Gare TGV", "Gare sans TGV", "Etablissement de sante court sejour", "Etablissement de sante moyen sejour", "Etablissement de sante long sejour", "Etablissement psychiatrique", "Urgences", "Maternite", "Structure psychiatrique ambulatoire", "College", "Lycee professionnel", "Lycee general ou technologique", "Education", "Equipements de loisirs", "Natation", "Boulodrome", "Tennis", "Cyclisme", "Athlestisme", "Golf", "Parcours sportif", "Sports de glace", "Skate park")
+
+equipment
+
+```
+
+```{r}
+data_dpt <- equipment
+
+write.csv(equipment, "equipment_final.csv")
+```
+
